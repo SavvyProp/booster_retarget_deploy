@@ -45,6 +45,8 @@ Booster Deploy is a lightweight deployment framework that supports running contr
 
 **IMPORTANT**: Make sure to install [Booster Firmware](https://booster.feishu.cn/wiki/E3q5wF5SnitXZgkY18Uc8odBnXb) >= v1.4 on the robot before proceeding.
 
+**NOTE**: If you plan to deploy on the T1 Standard Edition robot, you need to choose to deploy on the **motion board** rather than the perception board.
+
 - After you finish testing your task with Sim2Sim locally, copy the project to the robot.
 
 - Install Booster Robotic SDK on robot:
