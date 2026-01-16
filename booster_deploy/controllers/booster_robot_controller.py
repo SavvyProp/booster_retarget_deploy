@@ -25,7 +25,8 @@ from ..utils.synced_array import SyncedArray
 from ..utils.metrics import SyncedMetrics
 from ..utils.isaaclab import math as lab_math
 from ..utils.remote_control_service import RemoteControlService
-
+from ..utils.math import rotate_vector_by_quat
+from vicon_ros.vicon_listen import ViconTFClient
 
 logger = logging.getLogger("booster_deploy")
 logging.basicConfig(
@@ -482,6 +483,11 @@ class BoosterRobotController(BaseController):
     def __init__(self, cfg: ControllerCfg, portal: BoosterRobotPortal) -> None:
         super().__init__(cfg)
         self.portal = portal
+        self.vicon_client = ViconTFClient()
+        self.vicon_pos = np.zeros(3, dtype=np.float32)
+        self.vicon_quat = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float32)
+        self.last_time = time.time()
+        self.global_vel = np.zeros(3, dtype=np.float32)
 
     def update_vel_command(self):
         cmd = self.portal.synced_command.read()[0]
@@ -510,15 +516,31 @@ class BoosterRobotController(BaseController):
         self.robot.data.root_quat_w = lab_math.quat_from_euler_xyz(
             *rpy_t
         ).squeeze()
-        self.robot.data.root_lin_vel_b = lab_math.quat_apply_inverse(
-            self.robot.data.root_quat_w,
-            torch.from_numpy(
-                state["root_lin_vel_w"]).to(dtype=torch.float32).to(
-                    self.robot.data.device)
-        )
+        #self.robot.data.root_lin_vel_b = lab_math.quat_apply_inverse(
+        #    self.robot.data.root_quat_w,
+        #    torch.from_numpy(
+        #        state["root_lin_vel_w"]).to(dtype=torch.float32).to(
+        #            self.robot.data.device)
+        #)
         self.robot.data.root_ang_vel_b = torch.from_numpy(
             state["root_ang_vel_b"]).to(dtype=torch.float32).to(
                 self.robot.data.device)
+        
+        vicon_pos, vicon_quat = self.vicon_client.get_marker_position(
+            "Booster/booster_seg"
+            )
+        st = time.time()
+        dt = st - self.last_time
+        self.last_time = st
+        alpha = 0.2
+        raw_global_vel = (vicon_pos - self.vicon_pos) / dt
+        self.vicon_pos = vicon_pos
+        self.global_vel = self.global_vel * (1 - alpha) + raw_global_vel * alpha
+
+        local_vel = rotate_vector_by_quat(
+            self.global_vel, vicon_quat, ordering="wxyz")
+        self.robot.data.root_lin_vel_b = torch.from_numpy(
+            local_vel).to(dtype=torch.float32).to(self.robot.data.device)
 
     def ctrl_step(self, dof_targets: torch.Tensor) -> None:
         for i in range(self.robot.num_joints):

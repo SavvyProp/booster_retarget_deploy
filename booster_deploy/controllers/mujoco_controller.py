@@ -196,7 +196,7 @@ class MujocoController(BaseController):
                       f'at {self._step_count} steps')
 
     def ctrl_step(self, dof_targets: torch.Tensor):
-        dof_targets = dof_targets.cpu().numpy()  # type: ignore
+        dof_targets = dof_targets  # type: ignore
         self.log_states(dof_targets)
         if self.vel_command is not None:
             self.update_vel_command()
