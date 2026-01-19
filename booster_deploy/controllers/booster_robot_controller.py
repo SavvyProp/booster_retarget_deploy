@@ -446,6 +446,7 @@ class BoosterRobotPortal:
             print("RL gait initialization cancelled.")
         else:
             # main loop: wait for exit signal
+            print("Inference Running.")
             while self.is_running and not self.exit_event.is_set():
                 # check whether the inference process is alive
                 if self.inference_process is not None:
@@ -594,6 +595,7 @@ class BoosterRobotController(BaseController):
             self.update_vel_command()
         self.start()
         next_inference_time = self.portal.timer.get_time()
+        self.logger.info("Starting inference loop.")
         while self.is_running and not self.portal.exit_event.is_set():
             if self.portal.timer.get_time() < next_inference_time:
                 time.sleep(0.0002)
@@ -603,7 +605,8 @@ class BoosterRobotController(BaseController):
             self.update_state()
             self.portal.metrics["policy_step"].mark()
             dof_targets = self.policy_step()
-            print("Dof targets:", dof_targets.cpu().numpy())
+            self.logger.info("Dof targets: " + dof_targets.cpu().numpy().__str__())
+            #print("Dof targets:", dof_targets.cpu().numpy())
             self.ctrl_step(dof_targets)
 
         self.portal.exit_event.set()
