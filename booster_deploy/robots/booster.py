@@ -501,41 +501,19 @@ T1_29DOF_CFG = RobotCfg(
         stiffness=[
             40., 40.,
             40., 50., 20., 20., 20., 20., 20.,
-            40., 50., 20., 20., 20., 20., 20.,
+            40., 50., 20., 20., 20., 20., 20., 100.,
             350., 350., 180., 350., 250., 250.,
             350., 350., 180., 350., 250., 250.,
         ],
         damping=[
-        1.2566,  # AAHead_yaw
-        1.2566,  # Head_pitch
-        1.2566,  # Left_Shoulder_Pitch
-        1.2566,  # Left_Shoulder_Roll
-        1.2566,  # Left_Elbow_Pitch
-        1.2566,  # Left_Elbow_Yaw
-        1.2566,  # Left_Wrist_Pitch
-        1.2566,  # Left_Wrist_Yaw
-        1.2566,  # Left_Hand_Roll
-        1.2566,  # Right_Shoulder_Pitch
-        1.2566,  # Right_Shoulder_Roll
-        1.2566,  # Right_Elbow_Pitch
-        1.2566,  # Right_Elbow_Yaw
-        1.2566,  # Right_Wrist_Pitch
-        1.2566,  # Right_Wrist_Yaw
-        1.2566,  # Right_Hand_Roll
-        2.5133,  # Waist
-        6.2832,  # Left_Hip_Pitch
-        2.5133,  # Left_Hip_Roll
-        2.5133,  # Left_Hip_Yaw
-        6.2832,  # Left_Knee_Pitch
-        1.2566,  # Left_Ankle_Pitch
-        1.2566,  # Left_Ankle_Roll
-        6.2832,  # Right_Hip_Pitch
-        2.5133,  # Right_Hip_Roll
-        2.5133,  # Right_Hip_Yaw
-        6.2832,  # Right_Knee_Pitch
-        1.2566,  # Right_Ankle_Pitch
-        1.2566,  # Right_Ankle_Roll
-    ],
+            0.65, 0.65,
+            0.5, 1.5, 0.2, 0.2, 0.2, 0.2, 0.2,
+            0.5, 1.5, 0.2, 0.2, 0.2, 0.2, 0.2,
+            5.,
+            7.5, 7.5, 3., 5.5, 5.0, 5.0,
+            7.5, 7.5, 3., 5.5, 5.0, 5.0,
+        ],
+
         joint_pos=[
         0.0, 0.0,
         0.2, -1.35, 0.0, -0.5,
