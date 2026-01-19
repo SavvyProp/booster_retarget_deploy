@@ -10,4 +10,29 @@ __pycache__/
 *.pyo
 *.pyd
 
+# ROS build artifacts (catkin/colcon)
+build/
+devel/
+install/
+log/
 
+# ROS generated message/service artifacts
+*/msg_gen/
+*/srv_gen/
+*/action_gen/
+
+# colcon/ament metadata
+.colcon/
+.colcon_ignore
+.ament_cache/
+.rosinstall
+.rosinstall.bak
+.rosinstall.orig
+
+# ROS runtime/log files
+rosout.log
+*.bag
+*.bag.active
+.ros/
+.bash_history
+.python_history

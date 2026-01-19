@@ -59,8 +59,8 @@ class ViconTFClient:
         )
         t = ts.transform.translation
         r = ts.transform.rotation
-        
-        return np.array([t.x, t.y, t.z]), np.array([r.w, r.x, r.y, r.z])
+        rpy = self._quat_2_rpy([r.x, r.y, r.z, r.w])
+        return np.array([t.x, t.y, t.z]), np.array([r.w, r.x, r.y, r.z]), rpy
     
     def get_marker_position_quat(self, segment: str, timeout: float = 0.001) -> tuple[float, float, float]:
         """
