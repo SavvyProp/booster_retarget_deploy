@@ -296,8 +296,7 @@ class BoosterRobotPortal:
                 dof_vel[i] = motor.dq
                 fb_torque[i] = motor.tau_est
 
-            self.get_velocity()
-
+            
             self._state_buf[0]["root_rpy_w"][:] = rpy
             self._state_buf[0]["root_ang_vel_b"][:] = gyro
             self._state_buf[0]["root_pos_w"][:] = np.zeros(
@@ -513,7 +512,10 @@ class BoosterRobotPortal:
                         self.is_running = False
                         self.exit_event.set()
                         break
-                time.sleep(0.1)
+                self.get_velocity()
+                self.logger.info("Local vel x: {:.3f} y: {:.3f} z: {:.3f}".format(
+                    self.local_vel[0], self.local_vel[1], self.local_vel[2]))
+                time.sleep(0.001)
 
         # exit and switch to walking mode
         self.logger.info("Exiting controller, switching to walking mode...")
