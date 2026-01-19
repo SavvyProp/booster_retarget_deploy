@@ -489,6 +489,7 @@ class BoosterRobotController(BaseController):
         self.vicon_quat = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float32)
         self.last_time = time.time()
         self.global_vel = np.zeros(3, dtype=np.float32)
+        self.local_vel = np.zeros(3, dtype=np.float32)
 
     def update_vel_command(self):
         cmd = self.portal.synced_command.read()[0]
@@ -567,13 +568,14 @@ class BoosterRobotController(BaseController):
             self.vicon_pos = vicon_pos
             self.global_vel = self.global_vel * (1 - alpha) + raw_global_vel * alpha
 
-            local_vel = np.linalg.inv(R_world_body) @ self.global_vel
+            self.local_vel = np.linalg.inv(R_world_body) @ self.global_vel
+            
             self.robot.data.root_lin_vel_b = torch.from_numpy(
-                local_vel).to(dtype=torch.float32).to(self.robot.data.device)
+                self.local_vel).to(dtype=torch.float32).to(self.robot.data.device)
         except Exception as e:
             print("Failed to get marker position:", e)
             self.robot.data.root_lin_vel_b = torch.from_numpy(
-                np.zeros(3, dtype=np.float32)).to(
+                self.local_vel).to(
                     dtype=torch.float32).to(self.robot.data.device)
 
     def ctrl_step(self, dof_targets: torch.Tensor) -> None:
