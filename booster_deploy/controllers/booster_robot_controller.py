@@ -61,6 +61,7 @@ class BoosterRobotPortal:
 
     def __init__(self, cfg: ControllerCfg, use_sim_time: bool = False) -> None:
         self.cfg = cfg
+        self.robot = BoosterRobot(cfg.robot)
 
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
@@ -97,7 +98,7 @@ class BoosterRobotPortal:
         self.global_vel = np.zeros(3, dtype=np.float32)
         self.local_vel = np.zeros(3, dtype=np.float32)
 
-        self.robot = BoosterRobot(cfg.robot)
+        
 
         self.vicon_client = ViconTFClient()
         # Initialize communication. Callbacks may start immediately and
