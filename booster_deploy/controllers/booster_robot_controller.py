@@ -528,6 +528,7 @@ class BoosterRobotController(BaseController):
             state["root_ang_vel_b"]).to(dtype=torch.float32).to(
                 self.robot.data.device)
         try:
+            self.portal.logger.info("Getting marker position from Vicon...")
             vicon_pos, vicon_quat, rpy = self.vicon_client.get_marker_position(
                 "Booster/booster_seg"
                 )
@@ -537,13 +538,13 @@ class BoosterRobotController(BaseController):
                                         [0.0, 0.0, 1.0],
                                         [0.0,-1.0, 0.0]])
 
-                # Additional fixed pitch tilt of the marker plane by +6 deg about BODY Y (tilt defined in true body frame)
+            # Additional fixed pitch tilt of the marker plane by +6 deg about BODY Y (tilt defined in true body frame)
             theta = np.deg2rad(18.36)
             R_body_markers = np.array([[ np.cos(theta), 0.0, np.sin(theta)],
                                         [ 0.0,          1.0, 0.0         ],
                                         [-np.sin(theta), 0.0, np.cos(theta)]])
 
-                # Total body->measured mapping including mounting tilt (apply body tilt first, then body->measured axis mapping)
+            # Total body->measured mapping including mounting tilt (apply body tilt first, then body->measured axis mapping)
             marker_offset_meas = R_meas_body @ (R_body_markers @ marker_offset_body)
             cr, sr = np.cos(rpy[0]), np.sin(rpy[0])
             cp, sp = np.cos(rpy[1]), np.sin(rpy[1])
