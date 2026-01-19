@@ -572,6 +572,7 @@ class BoosterRobotController(BaseController):
             
             self.robot.data.root_lin_vel_b = torch.from_numpy(
                 self.local_vel).to(dtype=torch.float32).to(self.robot.data.device)
+            self.portal.logger.info("Local vel x: {:.3f} y: {:.3f} z: {:.3f}".format(self.local_vel[0], self.local_vel[1], self.local_vel[2]))
         except Exception as e:
             print("Failed to get marker position:", e)
             self.robot.data.root_lin_vel_b = torch.from_numpy(
