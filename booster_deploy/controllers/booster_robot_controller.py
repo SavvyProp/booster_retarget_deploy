@@ -62,16 +62,6 @@ class BoosterRobotPortal:
     def __init__(self, cfg: ControllerCfg, use_sim_time: bool = False) -> None:
         self.cfg = cfg
 
-        self.vicon_pos = np.zeros(3, dtype=np.float32)
-        self.vicon_quat = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float32)
-        self.last_time = time.time()
-        self.global_vel = np.zeros(3, dtype=np.float32)
-        self.local_vel = np.zeros(3, dtype=np.float32)
-
-        self.robot = BoosterRobot(cfg.robot)
-
-        self.vicon_client = ViconTFClient()
-
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
 
@@ -100,6 +90,16 @@ class BoosterRobotPortal:
         self.low_cmd_process: mp.Process | None = None
 
         rclpy.init()
+
+        self.vicon_pos = np.zeros(3, dtype=np.float32)
+        self.vicon_quat = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float32)
+        self.last_time = time.time()
+        self.global_vel = np.zeros(3, dtype=np.float32)
+        self.local_vel = np.zeros(3, dtype=np.float32)
+
+        self.robot = BoosterRobot(cfg.robot)
+
+        self.vicon_client = ViconTFClient()
         # Initialize communication. Callbacks may start immediately and
         # reference `is_running` and `exit_event`, so ensure those are set.
         self._init_communication()
