@@ -62,7 +62,15 @@ class BoosterRobotPortal:
     def __init__(self, cfg: ControllerCfg, use_sim_time: bool = False) -> None:
         self.cfg = cfg
 
+        self.vicon_pos = np.zeros(3, dtype=np.float32)
+        self.vicon_quat = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float32)
+        self.last_time = time.time()
+        self.global_vel = np.zeros(3, dtype=np.float32)
+        self.local_vel = np.zeros(3, dtype=np.float32)
+
         self.robot = BoosterRobot(cfg.robot)
+
+        self.vicon_client = ViconTFClient()
 
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
@@ -219,6 +227,53 @@ class BoosterRobotPortal:
         )
         self.low_state_thread.start()
 
+    def get_velocity(self):
+        try:
+            vicon_pos, vicon_quat, rpy = self.vicon_client.get_marker_position(
+                "Booster/booster_seg"
+                )
+
+            marker_offset_body = np.array([0.150, 0.0, 0.162]) # top-center of Booster
+            R_meas_body = np.array([[1.0, 0.0, 0.0],
+                                        [0.0, 0.0, 1.0],
+                                        [0.0,-1.0, 0.0]])
+
+            # Additional fixed pitch tilt of the marker plane by +6 deg about BODY Y (tilt defined in true body frame)
+            theta = np.deg2rad(18.36)
+            R_body_markers = np.array([[ np.cos(theta), 0.0, np.sin(theta)],
+                                        [ 0.0,          1.0, 0.0         ],
+                                        [-np.sin(theta), 0.0, np.cos(theta)]])
+
+            # Total body->measured mapping including mounting tilt (apply body tilt first, then body->measured axis mapping)
+            marker_offset_meas = R_meas_body @ (R_body_markers @ marker_offset_body)
+            cr, sr = np.cos(rpy[0]), np.sin(rpy[0])
+            cp, sp = np.cos(rpy[1]), np.sin(rpy[1])
+            cy, sy = np.cos(rpy[2]), np.sin(rpy[2])
+            R_x = np.array([[1.0, 0.0, 0.0],
+                                [0.0,  cr, -sr],
+                                [0.0,  sr,  cr]])
+            R_y = np.array([[ cp, 0.0, sp],
+                                [0.0, 1.0, 0.0],
+                                [-sp, 0.0, cp]])
+            R_z = np.array([[ cy, -sy, 0.0],
+                                [ sy,  cy, 0.0],
+                                [0.0, 0.0, 1.0]])
+            R_world_meas = R_z @ R_y @ R_x
+            R_world_body = R_world_meas @ (R_meas_body @ R_body_markers)
+
+            st = time.time()
+            dt = st - self.last_time
+            self.last_time = st
+            alpha = 0.01
+            raw_global_vel = (vicon_pos - self.vicon_pos) / dt
+            self.vicon_pos = vicon_pos
+            self.global_vel = self.global_vel * (1 - alpha) + raw_global_vel * alpha
+
+            self.local_vel = np.linalg.inv(R_world_body) @ self.global_vel
+            
+        except Exception as e:
+            print("Failed to get marker position:", e)
+
     def _low_state_handler(self, low_state_msg: LowState):
         self.metrics["low_state_handler"].mark()
         try:
@@ -240,17 +295,18 @@ class BoosterRobotPortal:
                 dof_vel[i] = motor.dq
                 fb_torque[i] = motor.tau_est
 
+            self.get_velocity()
+
             self._state_buf[0]["root_rpy_w"][:] = rpy
             self._state_buf[0]["root_ang_vel_b"][:] = gyro
             self._state_buf[0]["root_pos_w"][:] = np.zeros(
                 3, dtype=np.float32
             )
-            self._state_buf[0]["root_lin_vel_w"][:] = np.zeros(
-                3, dtype=np.float32
-            )
+            self._state_buf[0]["root_lin_vel_w"][:] = self.local_vel
             self._state_buf[0]["joint_pos"][:] = dof_pos
             self._state_buf[0]["joint_vel"][:] = dof_vel
             self._state_buf[0]["feedback_torque"][:] = fb_torque
+            
             self.synced_state.write(self._state_buf)
 
             # update velocity commands to synced_command
@@ -484,12 +540,8 @@ class BoosterRobotController(BaseController):
     def __init__(self, cfg: ControllerCfg, portal: BoosterRobotPortal) -> None:
         super().__init__(cfg)
         self.portal = portal
-        self.vicon_client = ViconTFClient()
-        self.vicon_pos = np.zeros(3, dtype=np.float32)
-        self.vicon_quat = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float32)
-        self.last_time = time.time()
-        self.global_vel = np.zeros(3, dtype=np.float32)
-        self.local_vel = np.zeros(3, dtype=np.float32)
+        
+        
 
     def update_vel_command(self):
         cmd = self.portal.synced_command.read()[0]
@@ -528,8 +580,9 @@ class BoosterRobotController(BaseController):
             state["root_ang_vel_b"]).to(dtype=torch.float32).to(
                 self.robot.data.device)
         self.robot.data.root_lin_vel_b = torch.from_numpy(
-            self.local_vel).to(
-                    dtype=torch.float32).to(self.robot.data.device)
+            state["root_lin_vel_w"]).to(dtype=torch.float32).to(
+                self.robot.data.device
+        )
 
     def ctrl_step(self, dof_targets: torch.Tensor) -> None:
         for i in range(self.robot.num_joints):
