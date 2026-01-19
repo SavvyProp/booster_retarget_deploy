@@ -498,37 +498,13 @@ T1_29DOF_CFG = RobotCfg(
     sim_body_names=[],
     mjcf_path="{BOOSTER_ASSETS_DIR}/robots/T1/T1_29dof.xml",
     prepare_state=PrepareStateCfg(
-        stiffness =[
-        19.7392,  # AAHead_yaw
-        19.7392,  # Head_pitch
-        19.7392,  # Left_Shoulder_Pitch
-        19.7392,  # Left_Shoulder_Roll
-        19.7392,  # Left_Elbow_Pitch
-        19.7392,  # Left_Elbow_Yaw
-        19.7392,  # Left_Wrist_Pitch
-        19.7392,  # Left_Wrist_Yaw
-        19.7392,  # Left_Hand_Roll
-        19.7392,  # Right_Shoulder_Pitch
-        19.7392,  # Right_Shoulder_Roll
-        19.7392,  # Right_Elbow_Pitch
-        19.7392,  # Right_Elbow_Yaw
-        19.7392,  # Right_Wrist_Pitch
-        19.7392,  # Right_Wrist_Yaw
-        19.7392,  # Right_Hand_Roll
-        39.4784,  # Waist
-        98.6960,  # Left_Hip_Pitch
-        39.4784,  # Left_Hip_Roll
-        39.4784,  # Left_Hip_Yaw
-        98.6960,  # Left_Knee_Pitch
-        19.7392,  # Left_Ankle_Pitch
-        19.7392,  # Left_Ankle_Roll
-        98.6960,  # Right_Hip_Pitch
-        39.4784,  # Right_Hip_Roll
-        39.4784,  # Right_Hip_Yaw
-        98.6960,  # Right_Knee_Pitch
-        19.7392,  # Right_Ankle_Pitch
-        19.7392,  # Right_Ankle_Roll
-    ],
+        stiffness=[
+            40., 40.,
+            40., 50., 20., 20., 20., 20., 20.,
+            40., 50., 20., 20., 20., 20., 20.,
+            350., 350., 180., 350., 250., 250.,
+            350., 350., 180., 350., 250., 250.,
+        ],
         damping=[
         1.2566,  # AAHead_yaw
         1.2566,  # Head_pitch
