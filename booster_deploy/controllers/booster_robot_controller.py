@@ -270,7 +270,8 @@ class BoosterRobotPortal:
             self.global_vel = self.global_vel * (1 - alpha) + raw_global_vel * alpha
 
             self.local_vel = np.linalg.inv(R_world_body) @ self.global_vel
-            
+            self.logger.info("Local vel x: {:.3f} y: {:.3f} z: {:.3f}".format(
+                self.local_vel[0], self.local_vel[1], self.local_vel[2]))
         except Exception as e:
             print("Failed to get marker position:", e)
 
