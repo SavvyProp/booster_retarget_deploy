@@ -642,7 +642,7 @@ class BoosterRobotController(BaseController):
             if self.portal.timer.get_time() < next_inference_time:
                 time.sleep(0.0002)
                 continue
-            if last_save + 5.0 < time.time():
+            if last_save + 1.0 < time.time():
                 np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
                 last_save = time.time()
             next_inference_time += self.cfg.policy_dt
