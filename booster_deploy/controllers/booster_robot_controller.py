@@ -600,6 +600,7 @@ class BoosterRobotController(BaseController):
                 self.update_vel_command()
             self.portal.metrics["policy_step"].mark()
             dof_targets = self.policy_step()
+            print("Dof targets:", dof_targets.cpu().numpy())
             self.ctrl_step(dof_targets)
 
         self.portal.exit_event.set()
