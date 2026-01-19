@@ -611,7 +611,7 @@ class BoosterRobotController(BaseController):
         self.portal.low_cmd_publisher.publish(self.portal.low_cmd)
 
     def stop(self):
-        np.savetxt("booster_obs_log.csv", self.obs_list, delimiter=",")
+        np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
         super().stop()
         self.portal.exit_event.set()
 
