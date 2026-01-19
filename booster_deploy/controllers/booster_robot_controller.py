@@ -515,7 +515,7 @@ class BoosterRobotPortal:
                 self.get_velocity()
                 self.logger.info("Local vel x: {:.3f} y: {:.3f} z: {:.3f}".format(
                     self.local_vel[0], self.local_vel[1], self.local_vel[2]))
-                time.sleep(0.01)
+                time.sleep(0.1)
 
         # exit and switch to walking mode
         self.logger.info("Exiting controller, switching to walking mode...")
