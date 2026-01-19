@@ -97,6 +97,8 @@ class BoosterRobotPortal:
         self.last_time = time.time()
         self.global_vel = np.zeros(3, dtype=np.float32)
         self.local_vel = np.zeros(3, dtype=np.float32)
+        self.global_pos = np.zeros(3, dtype=np.float32)
+        self.global_ori = np.zeros(9, dtype=np.float32)
 
         
 
@@ -123,9 +125,10 @@ class BoosterRobotPortal:
         state_dtype = np.dtype(
             [
                 ("root_rpy_w", float, (3,)),
+                ("root_mat_w", float, (9,)),
                 ("root_ang_vel_b", float, (3,)),
                 ("root_pos_w", float, (3,)),
-                ("root_lin_vel_w", float, (3,)),
+                ("root_lin_vel_b", float, (3,)),
                 ("joint_pos", float, (self.robot.num_joints,)),
                 ("joint_vel", float, (self.robot.num_joints,)),
                 ("feedback_torque", float, (self.robot.num_joints,)),
@@ -265,7 +268,7 @@ class BoosterRobotPortal:
             st = time.time()
             dt = st - self.last_time
             self.last_time = st
-            alpha = 0.01
+            alpha = 0.2
             raw_global_vel = (vicon_pos - self.vicon_pos) / dt
             self.vicon_pos = vicon_pos
             self.global_vel = self.global_vel * (1 - alpha) + raw_global_vel * alpha
@@ -273,6 +276,8 @@ class BoosterRobotPortal:
             self.local_vel = np.linalg.inv(R_world_body) @ self.global_vel
             self.logger.info("Local vel x: {:.3f} y: {:.3f} z: {:.3f}".format(
                 self.local_vel[0], self.local_vel[1], self.local_vel[2]))
+            self.global_pos = vicon_pos
+            self.global_ori = R_world_body.flatten()
         except Exception as e:
             print("Failed to get marker position:", e)
 
@@ -299,11 +304,10 @@ class BoosterRobotPortal:
 
             
             self._state_buf[0]["root_rpy_w"][:] = rpy
+            self._state_buf[0]["root_mat_w"][:] = self.global_ori
             self._state_buf[0]["root_ang_vel_b"][:] = gyro
-            self._state_buf[0]["root_pos_w"][:] = np.zeros(
-                3, dtype=np.float32
-            )
-            self._state_buf[0]["root_lin_vel_w"][:] = self.local_vel
+            self._state_buf[0]["root_pos_w"][:] = self.global_pos
+            self._state_buf[0]["root_lin_vel_b"][:] = self.local_vel
             self._state_buf[0]["joint_pos"][:] = dof_pos
             self._state_buf[0]["joint_vel"][:] = dof_vel
             self._state_buf[0]["feedback_torque"][:] = fb_torque
@@ -545,6 +549,8 @@ class BoosterRobotController(BaseController):
     def __init__(self, cfg: ControllerCfg, portal: BoosterRobotPortal) -> None:
         super().__init__(cfg)
         self.portal = portal
+        slice_size = 3 * self.robot.num_joints + 7
+        self.obs_list = np.zeros((500, slice_size), dtype=np.float32)
         
         
 
@@ -585,9 +591,15 @@ class BoosterRobotController(BaseController):
             state["root_ang_vel_b"]).to(dtype=torch.float32).to(
                 self.robot.data.device)
         self.robot.data.root_lin_vel_b = torch.from_numpy(
-            state["root_lin_vel_w"]).to(dtype=torch.float32).to(
+            state["root_lin_vel_b"]).to(dtype=torch.float32).to(
                 self.robot.data.device
         )
+
+        info_slice = self.robot_slice(
+            state["root_pos_w"],
+            state["root_mat_w"]
+        )
+        return info_slice
 
     def ctrl_step(self, dof_targets: torch.Tensor) -> None:
         for i in range(self.robot.num_joints):
@@ -599,25 +611,45 @@ class BoosterRobotController(BaseController):
         self.portal.low_cmd_publisher.publish(self.portal.low_cmd)
 
     def stop(self):
+        np.savetxt("booster_obs_log.csv", self.obs_list, delimiter=",")
         super().stop()
         self.portal.exit_event.set()
 
+    def robot_slice(self, global_pos, global_ori):
+        joint_pos = self.robot.data.joint_pos.cpu().numpy()
+        joint_vel = self.robot.data.joint_vel.cpu().numpy()
+        root_lin_vel_b = self.robot.data.root_lin_vel_b.cpu().numpy()
+        root_ang_vel_b = self.robot.data.root_ang_vel_b.cpu().numpy()
+        time_stamp = np.array([self.portal.timer.get_time()])
+        flat_obs = np.concatenate([
+            time_stamp,
+            joint_pos,
+            joint_vel,
+            root_lin_vel_b,
+            root_ang_vel_b, 
+        ], axis = -1)
+        return flat_obs
+    
     def run(self):
         self.update_state()
         if self.vel_command is not None:
             self.update_vel_command()
         self.start()
         next_inference_time = self.portal.timer.get_time()
+
         while self.is_running and not self.portal.exit_event.is_set():
             if self.portal.timer.get_time() < next_inference_time:
                 time.sleep(0.0002)
                 continue
             next_inference_time += self.cfg.policy_dt
 
-            self.update_state()
+            info_slice = self.update_state()
             self.portal.metrics["policy_step"].mark()
             dof_targets = self.policy_step()
-            self.portal.logger.info("Dof targets: {}".format(dof_targets))
+            #info_slice = self.robot_slice(dof_targets)
+            info_slice = np.concatenate([info_slice, dof_targets], axis = -1)
+            self.obs_list = np.roll(self.obs_list, -1, axis=0)
+            self.obs_list[-1, :] = info_slice
             #print("Dof targets:", dof_targets.cpu().numpy())
             self.ctrl_step(dof_targets)
 
