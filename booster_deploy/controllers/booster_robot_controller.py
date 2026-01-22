@@ -549,7 +549,7 @@ class BoosterRobotController(BaseController):
     def __init__(self, cfg: ControllerCfg, portal: BoosterRobotPortal) -> None:
         super().__init__(cfg)
         self.portal = portal
-        slice_size = 3 * self.robot.num_joints + 7
+        slice_size = 3 * self.robot.num_joints + 7 + self.policy.obs_size
         self.obs_list = np.zeros((500, slice_size), dtype=np.float32)
         
         
@@ -621,12 +621,16 @@ class BoosterRobotController(BaseController):
         root_lin_vel_b = self.robot.data.root_lin_vel_b.cpu().numpy()
         root_ang_vel_b = self.robot.data.root_ang_vel_b.cpu().numpy()
         time_stamp = np.array([self.portal.timer.get_time()])
+        obs = self.policy.obs
         flat_obs = np.concatenate([
             time_stamp,
             joint_pos,
             joint_vel,
             root_lin_vel_b,
             root_ang_vel_b, 
+            global_pos,
+            global_ori,
+            obs
         ], axis = -1)
         return flat_obs
     

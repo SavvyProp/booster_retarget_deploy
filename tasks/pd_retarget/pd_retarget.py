@@ -64,6 +64,7 @@ class PDRetargetPolicy(Policy):
         self.prev_body_vel = initial_out[5]
         self.prev_body_angvel = initial_out[6]
         self.duration = 500
+        self.obs = np.zeros((self.obs_size,), dtype=np.float32)
 
     def reset(self):
         self.counter = 0
@@ -114,6 +115,8 @@ class PDRetargetPolicy(Policy):
             mapped_dof_vel.numpy(),
             self.last_action.reshape(-1)
         ], axis=-1)
+
+        self.obs = obs
 
         return obs
     
