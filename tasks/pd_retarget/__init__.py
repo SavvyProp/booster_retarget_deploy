@@ -10,7 +10,7 @@ class T1RetargetControllerCfg1(T1RetargetControllerCfg):
     '''Human-like walk for T1 robot.'''
     def __post_init__(self):
         super().__post_init__()
-        self.policy.checkpoint_path = "tasks/pd_retarget/models/accad_w2c/policy.onnx"
+        self.policy.checkpoint_path = "tasks/pd_retarget/models/CMU_41_02/policy.onnx"
 
 
 register_task(
