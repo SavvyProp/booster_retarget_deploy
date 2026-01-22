@@ -643,7 +643,7 @@ class BoosterRobotController(BaseController):
                 time.sleep(0.0002)
                 continue
             if last_save + 1.0 < time.time():
-                np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
+                #np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
                 last_save = time.time()
             next_inference_time += self.cfg.policy_dt
 
@@ -656,5 +656,5 @@ class BoosterRobotController(BaseController):
             self.obs_list[-1, :] = info_slice
             #print("Dof targets:", dof_targets.cpu().numpy())
             self.ctrl_step(dof_targets)
-
+        np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
         self.portal.exit_event.set()
