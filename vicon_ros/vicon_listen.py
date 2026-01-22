@@ -11,8 +11,8 @@ class ViconTFClient:
                  namespace: str = 'vicon',
                  world_frame: str = 'world'):
         # Ensure rclpy is initialized before creating an executor/node
-        #if not rclpy.ok():
-        #    rclpy.init(args=None)
+        if not rclpy.ok():
+            rclpy.init(args=None)
         self._exec = rclpy.executors.SingleThreadedExecutor()
         self.node            = Node('vicon_tf_client')
         self._exec.add_node(self.node)
