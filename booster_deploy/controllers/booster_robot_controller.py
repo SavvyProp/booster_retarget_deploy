@@ -549,7 +549,7 @@ class BoosterRobotController(BaseController):
     def __init__(self, cfg: ControllerCfg, portal: BoosterRobotPortal) -> None:
         super().__init__(cfg)
         self.portal = portal
-        slice_size = 3 * self.robot.num_joints + 7 + self.policy.obs_size
+        slice_size = 3 * self.robot.num_joints + 7 + 12 + self.policy.obs_size
         self.obs_list = np.zeros((500, slice_size), dtype=np.float32)
         
         
@@ -629,7 +629,7 @@ class BoosterRobotController(BaseController):
             root_lin_vel_b,
             root_ang_vel_b, 
             global_pos,
-            global_ori,
+            global_ori.reshape(-1),
             obs
         ], axis = -1)
         return flat_obs
