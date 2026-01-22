@@ -422,14 +422,14 @@ T1_29DOF_CFG = RobotCfg(
         2.5133,  # Left_Hip_Roll
         2.5133,  # Left_Hip_Yaw
         6.2832,  # Left_Knee_Pitch
-        1.2566,  # Left_Ankle_Pitch
-        1.2566,  # Left_Ankle_Roll
+        3.0,  # Left_Ankle_Pitch
+        3.0,  # Left_Ankle_Roll
         6.2832,  # Right_Hip_Pitch
         2.5133,  # Right_Hip_Roll
         2.5133,  # Right_Hip_Yaw
         6.2832,  # Right_Knee_Pitch
-        1.2566,  # Right_Ankle_Pitch
-        1.2566,  # Right_Ankle_Roll
+        3.0,  # Right_Ankle_Pitch
+        3.0,  # Right_Ankle_Roll
     ],
     effort_limit=[
         7,   # AAHead_yaw
