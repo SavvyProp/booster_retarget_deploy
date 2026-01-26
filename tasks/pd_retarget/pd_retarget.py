@@ -45,13 +45,14 @@ class PDRetargetPolicy(Policy):
         self.session = ort.InferenceSession(self.cfg.checkpoint_path)
         self.last_action = np.zeros((29,), dtype=np.float32)
         self.counter = 0
+        self.delay = 30
         for inp in self.session.get_inputs():
             if inp.name == "obs":
                 self.obs_size = inp.shape[1]
         
         dummy_obs = np.zeros((1, self.obs_size)).astype(np.float32)
         
-        dummy_time = np.array([[self.counter]]).astype(np.float32)
+        dummy_time = np.array([[self.counter - self.delay]]).astype(np.float32)
         initial_out = self.session.run(None, 
                                        {"obs": dummy_obs, 
                                         "time_step": dummy_time})
@@ -103,6 +104,10 @@ class PDRetargetPolicy(Policy):
         #   joint_vel(num_action),
         #   actions(num_action)]
 
+        if self.counter < self.delay:
+            self.prev_joint_pos = is_joint_pos.reshape(1, -1)
+            self.prev_joint_vel = np.zeros((1, 29), dtype=np.float32)
+            
         cmd = np.concatenate([
             self.prev_joint_pos,
             self.prev_joint_vel,], axis = -1).astype(np.float32)
@@ -126,12 +131,15 @@ class PDRetargetPolicy(Policy):
         time = time.reshape(1, -1)
         obs = obs.reshape(1, -1).astype(np.float32)
 
+        
+        
         output = self.session.run(None, 
                                   {"obs": obs, 
                                    "time_step": time})
         
         self.counter += 1
-        self.counter = self.counter % self.duration
+        
+        self.counter = self.counter % (self.duration + self.delay)
         self.prev_joint_pos = output[1]
         self.prev_joint_vel = output[2]
         self.prev_body_pos = output[3]
