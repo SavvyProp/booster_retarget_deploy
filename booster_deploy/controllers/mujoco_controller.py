@@ -17,6 +17,8 @@ class MujocoController(BaseController):
 
         mjcf_path = self._expand_assets_placeholder(self.robot.cfg.mjcf_path)
         self.mj_model = mujoco.MjModel.from_xml_path(mjcf_path)
+        #masses = np.asarray(self.mj_model.body_mass, dtype=float)
+        #print(float(np.sum(masses[1:])))
         self.mj_model.opt.timestep = self.cfg.mujoco.physics_dt
         self.decimation = self.cfg.mujoco.decimation
         self.mj_data = mujoco.MjData(self.mj_model)

@@ -18,7 +18,7 @@ mj_to_isaac = [
     0, 2, 9, 16, 1, 3, 10, 17, 23, 4, 11, 18, 24, 5, 12, 19, 25, 6, 13, 20, 26, 7, 14, 21, 27, 8, 15, 22, 28
 ]
 
-action_scale = np.array(
+action_scale_ = np.array(
     [
     0.12665148, 0.12665148, 0.22797266, 0.22797266, 0.22797266, 0.22797266,
     0.22797266, 0.22797266, 0.22797266, 0.22797266, 0.22797266, 0.22797266,
@@ -140,18 +140,17 @@ class PDRetargetPolicy(Policy):
         self.prev_body_angvel = output[6]
         action = output[0]
         self.last_action = action
-        joint_pos_target = action[:, isaac_to_mj] * action_scale
+        joint_pos_target = action[:, isaac_to_mj] * action_scale_
         offset = np.array(self.robot.default_joint_pos)
         joint_pos_target = joint_pos_target.reshape(-1) + offset.reshape(-1)
+        joint_pos_target[0] = 0.0
+        joint_pos_target[1] = 0.0
         return joint_pos_target
 
 @configclass
 class PDRetargetPolicyCfg(PolicyCfg):
     constructor = PDRetargetPolicy
     checkpoint_path: str = MISSING  # type: ignore
-    actor_obs_history_length: int = 10
-    action_scale: float = 0.25
-    obs_dof_vel_scale: float = 1.0
     policy_joint_names: list[str] = MISSING  # type: ignore
 
 @configclass
