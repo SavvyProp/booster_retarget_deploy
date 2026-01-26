@@ -45,7 +45,7 @@ class PDRetargetPolicy(Policy):
         self.session = ort.InferenceSession(self.cfg.checkpoint_path)
         self.last_action = np.zeros((29,), dtype=np.float32)
         self.counter = 0
-        self.delay = 30
+        self.delay = 0
         for inp in self.session.get_inputs():
             if inp.name == "obs":
                 self.obs_size = inp.shape[1]
