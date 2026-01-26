@@ -158,7 +158,7 @@ class PDRetargetPolicyCfg(PolicyCfg):
 class T1RetargetControllerCfg(ControllerCfg):
     robot = T1_29DOF_CFG
     policy = PDRetargetPolicyCfg(
-        checkpoint_path="models/CMU_41_02/policy.onnx",
+        checkpoint_path="models/HDM_W/policy.onnx",
         policy_joint_names = [       # joint order in isaacsim/isaaclab
         "AAHead_yaw",
         'Left_Shoulder_Pitch',
