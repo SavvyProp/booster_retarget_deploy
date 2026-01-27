@@ -2,7 +2,7 @@ from booster_deploy.controllers.base_controller import BaseController, Policy
 from booster_deploy.controllers.controller_cfg import (
     ControllerCfg, PolicyCfg, VelocityCommandCfg
 )
-from booster_deploy.robots.booster import K1_CFG, T1_29DOF_CFG
+from booster_deploy.robots.booster import T1_29DOF_CFG
 from booster_deploy.utils.isaaclab.configclass import configclass
 from booster_deploy.utils.isaaclab import math as lab_math
 import onnxruntime as ort
@@ -153,7 +153,8 @@ class PDRetargetPolicy(Policy):
         joint_pos_target = joint_pos_target.reshape(-1) + offset.reshape(-1)
         joint_pos_target[0] = 0.0
         joint_pos_target[1] = 0.0
-        return joint_pos_target
+        u_ff = np.zeros_like(joint_pos_target)
+        return joint_pos_target, u_ff
 
 @configclass
 class PDRetargetPolicyCfg(PolicyCfg):

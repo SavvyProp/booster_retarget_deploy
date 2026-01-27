@@ -25,7 +25,7 @@ from ..utils.synced_array import SyncedArray
 from ..utils.metrics import SyncedMetrics
 from ..utils.isaaclab import math as lab_math
 from ..utils.remote_control_service import RemoteControlService
-from ..utils.math import rotate_vector_by_quat
+from ..utils.math import rotmat_to_quat
 from vicon_ros.vicon_listen import ViconTFClient
 
 logger = logging.getLogger("booster_deploy")
@@ -101,7 +101,6 @@ class BoosterRobotPortal:
         self.global_ori = np.zeros(9, dtype=np.float32)
 
         
-
         self.vicon_client = ViconTFClient()
         # Initialize communication. Callbacks may start immediately and
         # reference `is_running` and `exit_event`, so ensure those are set.
@@ -126,6 +125,7 @@ class BoosterRobotPortal:
             [
                 ("root_rpy_w", float, (3,)),
                 ("root_mat_w", float, (9,)),
+                ("root_quat_w", float, (4,)),
                 ("root_ang_vel_b", float, (3,)),
                 ("root_pos_w", float, (3,)),
                 ("root_lin_vel_b", float, (3,)),
@@ -302,9 +302,10 @@ class BoosterRobotPortal:
                 dof_vel[i] = motor.dq
                 fb_torque[i] = motor.tau_est
 
-            
+            base_quat = rotmat_to_quat(self.global_ori.reshape(3, 3))
             self._state_buf[0]["root_rpy_w"][:] = rpy
             self._state_buf[0]["root_mat_w"][:] = self.global_ori
+            self._state_buf[0]["root_quat_w"][:] = base_quat
             self._state_buf[0]["root_ang_vel_b"][:] = gyro
             self._state_buf[0]["root_pos_w"][:] = self.global_pos
             self._state_buf[0]["root_lin_vel_b"][:] = self.local_vel
@@ -563,7 +564,9 @@ class BoosterRobotController(BaseController):
 
     def update_state(self) -> None:
         state = self.portal.synced_state.read()[0]
-
+        self.robot.data.root_quat_w = torch.from_numpy(
+            state["root_quat_w"]).to(dtype=torch.float32).to(
+                self.robot.data.device)
         self.robot.data.joint_pos = torch.from_numpy(
             state["joint_pos"]).to(dtype=torch.float32).to(
                 self.robot.data.device)
@@ -601,13 +604,14 @@ class BoosterRobotController(BaseController):
         )
         return info_slice
 
-    def ctrl_step(self, dof_targets: torch.Tensor) -> None:
+    def ctrl_step(self, dof_targets: torch.Tensor, u_ff) -> None:
         for i in range(self.robot.num_joints):
             self.portal.motor_cmd[i].q = float(dof_targets[i].item())
             kp_val = float(self.robot.joint_stiffness[i].item())
             kd_val = float(self.robot.joint_damping[i].item())
             self.portal.motor_cmd[i].kp = kp_val
             self.portal.motor_cmd[i].kd = kd_val
+            self.portal.motor_cmd[i].tau = float(u_ff[i].item())
         self.portal.low_cmd_publisher.publish(self.portal.low_cmd)
 
     def stop(self):
@@ -653,9 +657,9 @@ class BoosterRobotController(BaseController):
 
             info_slice = self.update_state()
             self.portal.metrics["policy_step"].mark()
-            dof_targets = self.policy_step()
+            dof_targets, u_ff = self.policy_step()
             #info_slice = self.robot_slice(dof_targets)
-            info_slice = np.concatenate([info_slice, dof_targets], axis = -1)
+            info_slice = np.concatenate([info_slice, dof_targets, u_ff], axis = -1)
             self.obs_list = np.roll(self.obs_list, -1, axis=0)
             self.obs_list[-1, :] = info_slice
             #print("Dof targets:", dof_targets.cpu().numpy())

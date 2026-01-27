@@ -2,17 +2,17 @@ import pinocchio as pin
 import jax.numpy as jnp
 import jax
 import numpy as np
-from pin.local_lcc import step as lcc_step
+from tasks.lcc_retarget.pin.local_lcc import step as lcc_step
 # This class (file) defines a class used to extract key model properties using Pinocchio
 
 class PinLCC:
-    def __init__(self, urdf_path: str, mesh_dir: str):
+    def __init__(self, urdf_path: str, mesh_dir: str, pin_npz_dir: str):
         self.model, _, _ = pin.buildModelsFromUrdf(
             urdf_path,
             mesh_dir,
             root_joint=pin.JointModelFreeFlyer()
         )
-        with np.load("pin/booster_ids.npz") as npz:
+        with np.load(pin_npz_dir) as npz:
             self.bids = {k: npz[k] for k in npz}  # or: for k in npz.keys()
         self._ids = {}
         for k, v in self.bids.items():
@@ -104,7 +104,7 @@ class PinLCC:
                         com_pos, eef_pos, jacs, h, 
                         jnp.array(action))
         
-        return u_ff, pd_tau, des_pos, f, nle_ff
+        return u_ff, des_pos
         
 
     def print_q_order(self) -> None:

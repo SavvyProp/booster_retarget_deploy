@@ -100,6 +100,71 @@ def quat_mul(q1: np.ndarray, q2: np.ndarray, *, ordering: str = "wxyz", normaliz
     return np.array([w, x, y, z], dtype=np.float64)
 
 
+def rotmat_to_quat(R: np.ndarray, *, ordering: str = "wxyz", normalize: bool = True, eps: float = 1e-12) -> np.ndarray:
+    """Convert a rotation matrix to a quaternion.
+
+    Args:
+        R: Rotation matrix, shape (3, 3).
+        ordering: "wxyz" (default, MuJoCo-style) or "xyzw".
+        normalize: If True, normalize the output quaternion.
+        eps: Small threshold for numerical stability.
+
+    Returns:
+        Quaternion representing the same rotation, shape (4,), in requested ordering.
+
+    Notes:
+        Uses a branch on the matrix trace (and diagonal dominance) for numerical stability.
+        The returned quaternion has an arbitrary sign (q and -q represent the same rotation).
+    """
+    R = np.asarray(R, dtype=np.float64)
+    if R.shape != (3, 3):
+        raise ValueError(f"R must have shape (3, 3), got {R.shape}.")
+
+    trace = float(np.trace(R))
+
+    if trace > 0.0:
+        s = np.sqrt(trace + 1.0) * 2.0  # s = 4*w
+        w = 0.25 * s
+        x = (R[2, 1] - R[1, 2]) / s
+        y = (R[0, 2] - R[2, 0]) / s
+        z = (R[1, 0] - R[0, 1]) / s
+    else:
+        # Find the largest diagonal element and proceed accordingly
+        if R[0, 0] > R[1, 1] and R[0, 0] > R[2, 2]:
+            s = np.sqrt(max(eps, 1.0 + R[0, 0] - R[1, 1] - R[2, 2])) * 2.0  # s = 4*x
+            w = (R[2, 1] - R[1, 2]) / s
+            x = 0.25 * s
+            y = (R[0, 1] + R[1, 0]) / s
+            z = (R[0, 2] + R[2, 0]) / s
+        elif R[1, 1] > R[2, 2]:
+            s = np.sqrt(max(eps, 1.0 + R[1, 1] - R[0, 0] - R[2, 2])) * 2.0  # s = 4*y
+            w = (R[0, 2] - R[2, 0]) / s
+            x = (R[0, 1] + R[1, 0]) / s
+            y = 0.25 * s
+            z = (R[1, 2] + R[2, 1]) / s
+        else:
+            s = np.sqrt(max(eps, 1.0 + R[2, 2] - R[0, 0] - R[1, 1])) * 2.0  # s = 4*z
+            w = (R[1, 0] - R[0, 1]) / s
+            x = (R[0, 2] + R[2, 0]) / s
+            y = (R[1, 2] + R[2, 1]) / s
+            z = 0.25 * s
+
+    q_wxyz = np.array([w, x, y, z], dtype=np.float64)
+
+    if normalize:
+        n = np.linalg.norm(q_wxyz)
+        if n <= 0.0:
+            raise ValueError("Rotation matrix converted to a zero-norm quaternion.")
+        q_wxyz = q_wxyz / n
+
+    ordering = ordering.lower()
+    if ordering == "wxyz":
+        return q_wxyz
+    if ordering == "xyzw":
+        return np.array([q_wxyz[1], q_wxyz[2], q_wxyz[3], q_wxyz[0]], dtype=np.float64)
+    raise ValueError(f"Unknown quaternion ordering '{ordering}'. Use 'wxyz' or 'xyzw'.")
+
+
 def rotmat_to_rpy(R: np.ndarray, *, order: str = "zyx", eps: float = 1e-8) -> np.ndarray:
     """Convert a rotation matrix to roll/pitch/yaw (radians).
 

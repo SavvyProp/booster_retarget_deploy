@@ -197,7 +197,7 @@ class MujocoController(BaseController):
                 print(f'saved {self.cfg.mujoco.log_states}.npz '
                       f'at {self._step_count} steps')
 
-    def ctrl_step(self, dof_targets: torch.Tensor):
+    def ctrl_step(self, dof_targets: torch.Tensor, u_ff: torch.Tensor | None = None) -> None:
         dof_targets = dof_targets  # type: ignore
         self.log_states(dof_targets)
         if self.vel_command is not None:
@@ -216,7 +216,7 @@ class MujocoController(BaseController):
         ctrl_limit = self.robot.effort_limit.numpy()
         for i in range(self.decimation):
             self.mj_data.ctrl = np.clip(
-                kp * (dof_targets - dof_pos) - kd * dof_vel,
+                kp * (dof_targets - dof_pos) - kd * dof_vel + u_ff,
                 -ctrl_limit,
                 ctrl_limit,
             )
@@ -237,8 +237,8 @@ class MujocoController(BaseController):
             while viewer.is_running() and self.is_running:
                 sleep(self.cfg.mujoco.physics_dt * self.cfg.mujoco.decimation)
                 self.update_state()
-                dof_targets = self.policy_step()
-                self.ctrl_step(dof_targets)
+                dof_targets, u_ff = self.policy_step()
+                self.ctrl_step(dof_targets, u_ff)
 
                 if self.cfg.mujoco.visualize_reference_ghost:
                     # Render kinematic "ghost" robot from generalized coordinates.
