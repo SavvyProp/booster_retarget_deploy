@@ -609,9 +609,9 @@ class BoosterRobotController(BaseController):
             self.portal.motor_cmd[i].q = float(dof_targets[i].item())
             kp_val = float(self.robot.joint_stiffness[i].item())
             kd_val = float(self.robot.joint_damping[i].item())
-            self.portal.motor_cmd[i].kp = kp_val
-            self.portal.motor_cmd[i].kd = kd_val
-            self.portal.motor_cmd[i].tau = float(u_ff[i].item())
+            self.portal.motor_cmd[i].kp = kp_val * 0.0
+            self.portal.motor_cmd[i].kd = kd_val * 0.0
+            self.portal.motor_cmd[i].tau = float(u_ff[i].item()) * 0.0
         self.portal.low_cmd_publisher.publish(self.portal.low_cmd)
 
     def stop(self):
@@ -647,8 +647,9 @@ class BoosterRobotController(BaseController):
         last_save = time.time()
 
         while self.is_running and not self.portal.exit_event.is_set():
+            st = time.perf_counter()
             if self.portal.timer.get_time() < next_inference_time:
-                time.sleep(0.0002)
+                #time.sleep(0.00001)
                 continue
             if last_save + 1.0 < time.time():
                 #np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
@@ -663,6 +664,8 @@ class BoosterRobotController(BaseController):
             self.obs_list = np.roll(self.obs_list, -1, axis=0)
             self.obs_list[-1, :] = info_slice
             #print("Dof targets:", dof_targets.cpu().numpy())
+            self.portal.logger.info("Eval Time: {:.4f} ms".format(
+                (time.perf_counter() - st) * 1000.0))
             self.ctrl_step(dof_targets)
         np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
         self.portal.exit_event.set()
