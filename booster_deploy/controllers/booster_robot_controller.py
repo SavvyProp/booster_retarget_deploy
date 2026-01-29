@@ -661,11 +661,11 @@ class BoosterRobotController(BaseController):
             self.portal.metrics["policy_step"].mark()
             dof_targets, u_ff = self.policy_step()
             
-            f = self.policy.f.cpu().numpy()
-            com_accs = self.policy.com_accs.cpu().numpy()
-            com_vel = self.policy.com_vel.cpu().numpy()
-            com_angvel = self.policy.com_angvel.cpu().numpy()
-            w = self.policy.w.cpu().numpy()
+            f = np.array(self.policy.f)
+            com_accs = np.array(self.policy.com_accs)
+            com_vel = np.array(self.policy.com_vel)
+            com_angvel = np.array(self.policy.com_angvel)
+            w = np.array(self.policy.w)
             fbt = self.robot.data.feedback_torque.cpu().numpy()
 
             #info_slice = self.robot_slice(dof_targets)
