@@ -255,7 +255,8 @@ def ctrl2components(act, ids):
     des_pos = logits["des_pos"][ids["isaac_to_mj"]] * ids["lg_action_scale"]
     offset = ids["default_joint_pos"][ids["isaac_to_mj"]]
     
-    des_pos = des_pos + offset
+    #des_pos = des_pos + offset
+    des_pos = offset
     des_angvel = logits["des_com_angvel"] * 0.50
     des_com_vel = logits["des_com_vel"] * 0.25
     

@@ -224,7 +224,7 @@ T1_29DOF_CFG = RobotCfg(
     ),
 )
 
-GAIN_FAC = 0.75
+GAIN_FAC = 0.0
 
 T1_29DOF_LCC_CFG = RobotCfg(
     name="Booster_T1_29DOF",

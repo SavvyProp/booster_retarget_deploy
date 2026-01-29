@@ -550,7 +550,7 @@ class BoosterRobotController(BaseController):
     def __init__(self, cfg: ControllerCfg, portal: BoosterRobotPortal) -> None:
         super().__init__(cfg)
         self.portal = portal
-        slice_size = 3 * self.robot.num_joints + 7 + 12 + self.policy.obs_size
+        slice_size = 4 * self.robot.num_joints + 7 + 12 + self.policy.obs_size
         self.obs_list = np.zeros((500, slice_size), dtype=np.float32)
         
         
@@ -612,7 +612,7 @@ class BoosterRobotController(BaseController):
             self.portal.motor_cmd[i].kp = kp_val * 0.0
             self.portal.motor_cmd[i].kd = kd_val * 0.0
             self.portal.motor_cmd[i].tau = float(u_ff[i].item()) * 0.0
-        self.portal.low_cmd_publisher.publish(self.portal.low_cmd)
+        #self.portal.low_cmd_publisher.publish(self.portal.low_cmd)
 
     def stop(self):
         np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
