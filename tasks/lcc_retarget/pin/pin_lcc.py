@@ -53,9 +53,9 @@ class PinLCC:
         self.vpin = np.concatenate([base_linvel, base_angvel,
                                      joint_vel], axis=-1)
         pin.computeAllTerms(self.model, self.data, self.qpin, self.vpin)
-        pin.forwardKinematics(self.model, self.data, self.qpin, self.vpin)
-        pin.updateFramePlacements(self.model, self.data)
-        pin.computeJointJacobians(self.model, self.data, self.qpin)
+        #pin.forwardKinematics(self.model, self.data, self.qpin, self.vpin)
+        #pin.updateFramePlacements(self.model, self.data)
+        #pin.computeJointJacobians(self.model, self.data, self.qpin)
 
         eefs = ["Left_Hand_Roll", "Right_Hand_Roll",
                 "Left_Ankle_Roll", "Right_Ankle_Roll"]

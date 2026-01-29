@@ -112,6 +112,7 @@ class PDRetargetPolicy(Policy):
             self.prev_joint_pos,
             self.prev_joint_vel,], axis = -1).astype(np.float32)
         
+        
         obs = np.concatenate([
             cmd[0, :], 
             base_lin_vel.numpy(),
@@ -149,8 +150,9 @@ class PDRetargetPolicy(Policy):
         action = output[0]
         self.last_action = action
         joint_pos_target = action[:, isaac_to_mj] * action_scale_
-        offset = np.array(self.robot.default_joint_pos)
-        joint_pos_target = joint_pos_target.reshape(-1) + offset.reshape(-1)
+        #offset = np.array(self.robot.default_joint_pos)
+        #joint_pos_target = joint_pos_target.reshape(-1) + offset.reshape(-1)
+        joint_pos_target = joint_pos_target.reshape(-1) + is_joint_pos[isaac_to_mj].reshape(-1)
         joint_pos_target[0] = 0.0
         joint_pos_target[1] = 0.0
         u_ff = np.zeros_like(joint_pos_target)

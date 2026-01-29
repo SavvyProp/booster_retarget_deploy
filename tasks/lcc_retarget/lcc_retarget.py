@@ -8,8 +8,9 @@ from booster_deploy.utils.isaaclab import math as lab_math
 from tasks.lcc_retarget.pin.pin_lcc import PinLCC
 import onnxruntime as ort
 import numpy as np
+from typing import List, Optional
 import torch
-
+import time
 from dataclasses import MISSING
 
 isaac_to_mj = [
@@ -76,25 +77,25 @@ class LCCRetargetPolicy(Policy):
         self.counter = 0
         return
     
-    def compute_observation(self):
+    def compute_observation(self, dof_pos, dof_vel, base_ang_vel, base_lin_vel):
         """Compute current observation following sim2sim.py pattern."""
         # Get robot state
-        dof_pos = self.robot.data.joint_pos
-        dof_vel = self.robot.data.joint_vel
-        base_quat = self.robot.data.root_quat_w
-        base_ang_vel = self.robot.data.root_ang_vel_b
-        base_lin_vel = self.robot.data.root_lin_vel_b
+        #dof_pos = self.robot.data.joint_pos
+        #dof_vel = self.robot.data.joint_vel
+        #base_quat = self.robot.data.root_quat_w
+        #base_ang_vel = self.robot.data.root_ang_vel_b
+        #base_lin_vel = self.robot.data.root_lin_vel_b
         # Project gravity vector into base frame
-        gravity_w = torch.tensor([0.0, 0.0, -1.0], dtype=torch.float32)
-        projected_gravity = lab_math.quat_apply_inverse(base_quat, gravity_w)
+        #gravity_w = torch.tensor([0.0, 0.0, -1.0], dtype=torch.float32)
+        #projected_gravity = lab_math.quat_apply_inverse(base_quat, gravity_w)
 
-        if self.cfg.enable_safety_fallback:
+        #if self.cfg.enable_safety_fallback:
             # fall detection: stop if falling
-            if projected_gravity[2] > -0.5:
-                print("\nFalling detected, stopping policy for safety. "
-                      "You can disable safety fallback by setting "
-                      f"{self.cfg.__class__.__name__}.enable_safety_fallback "
-                      "to False.")
+        #    if projected_gravity[2] > -0.5:
+        #        print("\nFalling detected, stopping policy for safety. "
+        #              "You can disable safety fallback by setting "
+        #              f"{self.cfg.__class__.__name__}.enable_safety_fallback "
+        #              "to False.")
                 #self.controller.stop()
 
         #default_joint_pos_sim = self.robot.default_joint_pos
@@ -119,10 +120,10 @@ class LCCRetargetPolicy(Policy):
         
         obs = np.concatenate([
             cmd[0, :], 
-            base_lin_vel.numpy(),
-            base_ang_vel.numpy(),
-            mapped_dof_pos.numpy(),
-            mapped_dof_vel.numpy(),
+            base_lin_vel,
+            base_ang_vel,
+            mapped_dof_pos,
+            mapped_dof_vel,
             self.last_action.reshape(-1)
         ], axis=-1)
 
@@ -152,21 +153,28 @@ class LCCRetargetPolicy(Policy):
         self.last_action = action
     
     def inference(self):
-        obs = self.compute_observation()
-        if self.decimation_counter % 10 == 0:
-            self.eval_network(obs)
-            self.decimation_counter = 0
-        
+        #obs = self.compute_observation()
         dof_pos = self.robot.data.joint_pos.numpy()
         dof_vel = self.robot.data.joint_vel.numpy()
         base_quat = self.robot.data.root_quat_w.numpy()
         base_ang_vel = self.robot.data.root_ang_vel_b.numpy()
         base_lin_vel = self.robot.data.root_lin_vel_b.numpy()
 
+        obs = self.compute_observation(
+            dof_pos,
+            dof_vel,
+            base_ang_vel,
+            base_lin_vel
+        )
+
+        if self.decimation_counter % 10 == 0:
+            self.eval_network(obs)
+            self.decimation_counter = 0
+
         r_wb = quat_to_rotmat_wxyz(base_quat)
         grav_vec = r_wb.T @ np.array([0.0, 0.0, -9.81], dtype=np.float32)
         
-        u_ff, pd_tau = self.pin_lcc.step(
+        u_ff, pd_pos = self.pin_lcc.step(
             base_lin_vel,
             base_ang_vel,
             grav_vec,
@@ -176,7 +184,11 @@ class LCCRetargetPolicy(Policy):
         )
 
         self.decimation_counter += 1
-        return pd_tau, u_ff
+        #pd_pos = pd_pos.numpy()
+        #pd_pos[0] = 0.0
+        #pd_pos[1] = 0.0
+        pd_pos = pd_pos.at[0:2].set(0.0)
+        return pd_pos, u_ff
 
 @configclass
 class LCCRetargetPolicyCfg(PolicyCfg):
@@ -185,9 +197,27 @@ class LCCRetargetPolicyCfg(PolicyCfg):
     policy_joint_names: list[str] = MISSING  # type: ignore
 
 @configclass
+class BoosterRobotControllerCfg:
+    low_state_dt: float = 0.0005
+    metrics_max_events: int = 2000
+
+@configclass
+class MujocoControllerCfg:
+    init_pos: List[float] = [0.0, 0.0, 0.65]
+    init_quat: List[float] = [1.0, 0.0, 0.0, 0.0]
+    decimation: int = 1
+    # physics_dt will automatically be set by ControllerCfg
+    physics_dt: float = None  # type: ignore
+    log_states: Optional[str] = None
+    visualize_reference_ghost: bool = False
+    ghost_rgba: List[float] = [0.2, 0.8, 0.2, 0.25]
+
+@configclass
 class T1LCCRetargetControllerCfg(ControllerCfg):
     robot = T1_29DOF_LCC_CFG
     policy_dt = 0.002
+    booster = BoosterRobotControllerCfg()
+    mujoco = MujocoControllerCfg()
     policy = LCCRetargetPolicyCfg(
         checkpoint_path="models/HDM_W/policy.onnx",
         policy_joint_names = [       # joint order in isaacsim/isaaclab

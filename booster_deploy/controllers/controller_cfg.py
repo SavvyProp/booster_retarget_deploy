@@ -14,7 +14,7 @@ class PrepareStateCfg:
 
 @configclass
 class MujocoControllerCfg:
-    init_pos: List[float] = [0.0, 0.0, 0.6]
+    init_pos: List[float] = [0.0, 0.0, 0.65]
     init_quat: List[float] = [1.0, 0.0, 0.0, 0.0]
     decimation: int = 10
     # physics_dt will automatically be set by ControllerCfg

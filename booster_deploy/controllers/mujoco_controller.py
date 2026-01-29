@@ -9,7 +9,7 @@ import mujoco
 import mujoco.viewer
 from booster_assets import BOOSTER_ASSETS_DIR
 from .base_controller import BaseController, ControllerCfg, VelocityCommand
-
+from ..utils.math import rotmat_to_quat, world_to_base_vector
 
 class MujocoController(BaseController):
     def __init__(self, cfg: ControllerCfg):
@@ -144,8 +144,18 @@ class MujocoController(BaseController):
 
         base_pos_w = self.mj_data.qpos.astype(np.float32)[:3]
         base_quat = self.mj_data.qpos.astype(np.float32)[3:7]
-        base_lin_vel_b = self.mj_data.qvel.astype(np.float32)[:3]
-        base_ang_vel_b = self.mj_data.qvel.astype(np.float32)[3:6]
+        base_lin_vel_w = self.mj_data.qvel.astype(np.float32)[:3]
+        base_ang_vel_w = self.mj_data.qvel.astype(np.float32)[3:6]
+
+        base_lin_vel_b = world_to_base_vector(
+            base_lin_vel_w,
+            base_quat,
+            ordering="wxyz",)
+
+        base_ang_vel_b = world_to_base_vector(
+            base_ang_vel_w,
+            base_quat,
+            ordering="wxyz",)
 
         self.robot.data.joint_pos = torch.from_numpy(
             dof_pos).to(self.robot.data.device)
