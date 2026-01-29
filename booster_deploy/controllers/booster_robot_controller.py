@@ -550,7 +550,7 @@ class BoosterRobotController(BaseController):
     def __init__(self, cfg: ControllerCfg, portal: BoosterRobotPortal) -> None:
         super().__init__(cfg)
         self.portal = portal
-        slice_size = 4 * self.robot.num_joints + 7 + 12 + self.policy.obs_size
+        slice_size = 5 * self.robot.num_joints + 7 + 12 + 30 + 6 + 6 + 5 + self.policy.obs_size
         self.obs_list = np.zeros((500, slice_size), dtype=np.float32)
         
         
@@ -611,7 +611,7 @@ class BoosterRobotController(BaseController):
             kd_val = float(self.robot.joint_damping[i].item())# * 0.0
             self.portal.motor_cmd[i].kp = kp_val# * 0.0
             self.portal.motor_cmd[i].kd = kd_val# * 0.0
-            self.portal.motor_cmd[i].tau = float(u_ff[i].item())# * 0.0
+            self.portal.motor_cmd[i].tau = float(u_ff[i].item()) * 0.1# * 0.0
         self.portal.low_cmd_publisher.publish(self.portal.low_cmd)
 
     def stop(self):
@@ -660,8 +660,24 @@ class BoosterRobotController(BaseController):
             info_slice = self.update_state()
             self.portal.metrics["policy_step"].mark()
             dof_targets, u_ff = self.policy_step()
+            
+            f = self.policy.f.cpu().numpy()
+            com_accs = self.policy.com_accs.cpu().numpy()
+            com_vel = self.policy.com_vel.cpu().numpy()
+            com_angvel = self.policy.com_angvel.cpu().numpy()
+            w = self.policy.w.cpu().numpy()
+            fbt = self.robot.data.feedback_torque.cpu().numpy()
+
             #info_slice = self.robot_slice(dof_targets)
-            info_slice = np.concatenate([info_slice, dof_targets, u_ff], axis = -1)
+            info_slice = np.concatenate([info_slice, 
+                                         w,
+                                         fbt,
+                                         dof_targets, 
+                                         u_ff,
+                                         f,
+                                         com_accs,
+                                         com_vel,
+                                         com_angvel,], axis = -1)
             self.obs_list = np.roll(self.obs_list, -1, axis=0)
             self.obs_list[-1, :] = info_slice
             #print("Dof targets:", dof_targets.cpu().numpy())

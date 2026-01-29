@@ -327,4 +327,4 @@ def step(base_linvel, base_angvel, grav_vac,
     #u_final = u * (pd_weight) + pd_tau * (1.0 - pd_weight)
     #u = jnp.clip(u, -ids["tau_limits"], ids["tau_limits"])
 
-    return u_ff, pd_tau, des_pos, f, nle_ff
+    return u_ff, pd_tau, des_pos, f, com_accs, des_com_vel, des_angvel, w

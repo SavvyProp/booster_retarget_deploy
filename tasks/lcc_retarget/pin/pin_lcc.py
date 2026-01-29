@@ -28,6 +28,10 @@ class PinLCC:
 
         self.data = self.model.createData()
 
+        self.f = None
+        self.com_accs = None
+        self.w = None
+
         self.qpin = np.zeros([self.model.nq])
         self.vpin = np.zeros([self.model.nv])
         #self.lcc_step = jax.jit(lcc_step)
@@ -96,13 +100,19 @@ class PinLCC:
         jacs = jnp.array(self.get_jacobians())
         h = jnp.array(self.get_grav_comp())
 
-        u_ff, pd_tau, des_pos, f, nle_ff = self.lcc_step(
+        u_ff, pd_tau, des_pos, f, com_accs, com_vel, com_angvel, w = self.lcc_step(
                         jnp.array(base_linvel), jnp.array(base_angvel), 
                         jnp.array(grav_vec),
                         jnp.array(joint_pos), 
                         jnp.array(joint_vel),
                         com_pos, eef_pos, jacs, h, 
                         jnp.array(action))
+        
+        self.f = f
+        self.com_vel = com_vel
+        self.com_accs = com_accs
+        self.com_angvel = com_angvel
+        self.w = w
         
         return u_ff, des_pos
         

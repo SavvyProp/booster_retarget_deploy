@@ -72,6 +72,11 @@ class LCCRetargetPolicy(Policy):
             pin_npz_dir="tasks/lcc_retarget/pin/booster_ids.npz"
         )
         self.decimation_counter = 0
+        self.f = None
+        self.com_vel = None
+        self.com_accs = None
+        self.com_angvel = None
+        self.w = None
 
     def reset(self):
         self.counter = 0
@@ -182,6 +187,11 @@ class LCCRetargetPolicy(Policy):
             dof_vel,
             self.last_action.reshape(-1)
         )
+        self.f = self.pin_lcc.f
+        self.com_vel = self.pin_lcc.com_vel
+        self.com_accs = self.pin_lcc.com_accs
+        self.com_angvel = self.pin_lcc.com_angvel
+        self.w = self.pin_lcc.w
 
         self.decimation_counter += 1
         #pd_pos = pd_pos.numpy()
