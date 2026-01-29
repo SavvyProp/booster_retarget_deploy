@@ -606,12 +606,12 @@ class BoosterRobotController(BaseController):
 
     def ctrl_step(self, dof_targets: torch.Tensor, u_ff) -> None:
         for i in range(self.robot.num_joints):
-            self.portal.motor_cmd[i].q = float(dof_targets[i].item()) * 0.0
-            kp_val = float(self.robot.joint_stiffness[i].item()) * 0.0
-            kd_val = float(self.robot.joint_damping[i].item()) * 0.0
-            self.portal.motor_cmd[i].kp = kp_val * 0.0
-            self.portal.motor_cmd[i].kd = kd_val * 0.0
-            self.portal.motor_cmd[i].tau = float(u_ff[i].item()) * 0.0
+            self.portal.motor_cmd[i].q = float(dof_targets[i].item())# * 0.0
+            kp_val = float(self.robot.joint_stiffness[i].item())# * 0.0
+            kd_val = float(self.robot.joint_damping[i].item())# * 0.0
+            self.portal.motor_cmd[i].kp = kp_val# * 0.0
+            self.portal.motor_cmd[i].kd = kd_val# * 0.0
+            self.portal.motor_cmd[i].tau = float(u_ff[i].item())# * 0.0
         self.portal.low_cmd_publisher.publish(self.portal.low_cmd)
 
     def stop(self):
@@ -650,7 +650,7 @@ class BoosterRobotController(BaseController):
         while self.is_running and not self.portal.exit_event.is_set():
             st = time.perf_counter()
             if self.portal.timer.get_time() < next_inference_time:
-                #time.sleep(0.00001)
+                time.sleep(0.0001)
                 continue
             if last_save + 1.0 < time.time():
                 #np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
