@@ -127,6 +127,7 @@ class LCCRetargetPolicy(Policy):
             self.last_action.reshape(-1)
         ], axis=-1)
 
+        print(("obs:", obs.shape))
         self.obs = obs
 
         return obs
