@@ -611,7 +611,7 @@ class BoosterRobotController(BaseController):
             kd_val = float(self.robot.joint_damping[i].item())# * 0.0
             self.portal.motor_cmd[i].kp = kp_val# * 0.0
             self.portal.motor_cmd[i].kd = kd_val# * 0.0
-            self.portal.motor_cmd[i].tau = float(u_ff[i].item()) * 0.1# * 0.0
+            self.portal.motor_cmd[i].tau = float(u_ff[i].item()) * 1.0# * 0.0
         self.portal.low_cmd_publisher.publish(self.portal.low_cmd)
 
     def stop(self):
