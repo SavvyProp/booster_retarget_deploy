@@ -612,7 +612,7 @@ class BoosterRobotController(BaseController):
             self.portal.motor_cmd[i].kp = kp_val * 0.0
             self.portal.motor_cmd[i].kd = kd_val * 0.0
             self.portal.motor_cmd[i].tau = float(u_ff[i].item()) * 0.0
-        #self.portal.low_cmd_publisher.publish(self.portal.low_cmd)
+        self.portal.low_cmd_publisher.publish(self.portal.low_cmd)
 
     def stop(self):
         np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
@@ -667,6 +667,8 @@ class BoosterRobotController(BaseController):
             #print("Dof targets:", dof_targets.cpu().numpy())
             self.portal.logger.info("Eval Time: {:.4f} ms".format(
                 (time.perf_counter() - st) * 1000.0))
-            self.ctrl_step(dof_targets)
+            self.portal.logger.info("Send CMD")
+            self.ctrl_step(dof_targets, u_ff)
+            self.portal.logger.info("CMD Sent")
         np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
         self.portal.exit_event.set()
