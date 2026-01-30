@@ -13,15 +13,15 @@ class T1LCC_CMU_41_02(T1LCCRetargetControllerCfg):
         self.policy.checkpoint_path = "tasks/lcc_retarget/models/CMU_41_02/policy.onnx"
 
 @configclass
-class T1LCC_HDM_W(T1LCCRetargetControllerCfg):
+class T1LCC_HDM_D(T1LCCRetargetControllerCfg):
     '''Human-like walk for T1 robot.'''
     def __post_init__(self):
         super().__post_init__()
-        self.policy.checkpoint_path = "tasks/lcc_retarget/models/HDM_W/policy.onnx"
+        self.policy.checkpoint_path = "tasks/lcc_retarget/models/HDM_D/policy.onnx"
 
 
 register_task(
     "t1_lcc_retarget_CMU_41_02", T1LCC_CMU_41_02())
 
 register_task(
-    "t1_lcc_retarget_HDM_W", T1LCC_HDM_W())
+    "t1_lcc_retarget_HDM_D", T1LCC_HDM_D())

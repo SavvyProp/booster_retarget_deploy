@@ -145,7 +145,7 @@ class MujocoController(BaseController):
         base_pos_w = self.mj_data.qpos.astype(np.float32)[:3]
         base_quat = self.mj_data.qpos.astype(np.float32)[3:7]
         base_lin_vel_w = self.mj_data.qvel.astype(np.float32)[:3]
-        base_ang_vel_w = self.mj_data.qvel.astype(np.float32)[3:6]
+        base_ang_vel_w = self.mj_data.cvel.astype(np.float32)[1, :3]
 
         base_lin_vel_b = world_to_base_vector(
             base_lin_vel_w,

@@ -105,7 +105,7 @@ class LCCRetargetPolicy(Policy):
 
         #default_joint_pos_sim = self.robot.default_joint_pos
         mapped_dof_pos = dof_pos[mj_to_isaac] - is_joint_pos
-        mapped_dof_vel = dof_vel[mj_to_isaac] - is_joint_pos
+        mapped_dof_vel = dof_vel[mj_to_isaac] # - is_joint_pos
 
         # Build observation: [
         #   ang_vel(3),
