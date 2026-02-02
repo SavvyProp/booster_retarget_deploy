@@ -8,6 +8,7 @@ class ViconVelocityEstimator:
     def __init__(self):
         self.vicon_client = ViconTFClient()
         self.vicon_pos = np.zeros([3])
+        self.base_pos = np.zeros([3])
         self.global_vel = np.zeros([3])
         self.local_vel =  np.zeros([3])
         #self.last_time = time.time()
@@ -24,10 +25,10 @@ class ViconVelocityEstimator:
             #print("Vicon Time:", time_since)
             if self.last_time is None:
                 self.last_time = time_since
-                return self.vicon_pos, self.local_vel, self.global_ori
+                return self.base_pos, self.local_vel, self.global_ori
             
             if abs(time_since - self.last_time) < 1e-5:
-                return self.vicon_pos, self.local_vel, self.global_ori  # Skip update if no new data
+                return self.base_pos, self.local_vel, self.global_ori  # Skip update if no new data
 
             marker_offset_body = np.array([0.150, 0.0, 0.162]) # top-center of Booster
             R_meas_body = np.array([[1.0, 0.0, 0.0],
@@ -59,14 +60,13 @@ class ViconVelocityEstimator:
 
             dt = time_since - self.last_time
             self.last_time = time_since
-            print("dt:", dt)
             alpha = 0.01
             raw_global_vel = (vicon_pos - self.vicon_pos) / dt
             self.vicon_pos = vicon_pos
             self.global_vel = self.global_vel * (1 - alpha) + raw_global_vel * alpha
 
             offset = R_world_body @ MARKER_OFFSET #Rotate marker offset into world frame
-            self.vicon_pos = vicon_pos - offset
+            self.base_pos = vicon_pos - offset
 
 
             self.local_vel = np.linalg.inv(R_world_body) @ self.global_vel
@@ -76,4 +76,4 @@ class ViconVelocityEstimator:
             self.global_ori = R_world_body.flatten()
         except Exception as e:
             print("Failed to get marker position:", e)
-        return self.vicon_pos, self.local_vel, self.global_ori
+        return self.base_pos, self.local_vel, self.global_ori
