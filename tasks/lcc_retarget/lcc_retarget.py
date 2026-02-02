@@ -54,10 +54,13 @@ class LCCRetargetPolicy(Policy):
         dummy_obs = np.zeros((1, self.obs_size)).astype(np.float32)
         
         dummy_time = np.array([[self.counter - self.delay]]).astype(np.float32)
-        onm = onnx.load(self.cfg.checkpoint_path)
-        metadata_dict = {p.key: p.value for p in onm.metadata_props}
-        duration = int(metadata_dict["seq_len"]) - 1
-        duration = min(duration, 500)
+        try:
+            onm = onnx.load(self.cfg.checkpoint_path)
+            metadata_dict = {p.key: p.value for p in onm.metadata_props}  
+            duration = int(metadata_dict["seq_len"]) - 1
+            duration = min(duration, 500)
+        except:
+            duration = 500
         initial_out = self.session.run(None, 
                                        {"obs": dummy_obs, 
                                         "time_step": dummy_time})
