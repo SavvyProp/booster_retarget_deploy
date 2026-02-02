@@ -549,12 +549,12 @@ class BoosterRobotController(BaseController):
     def ctrl_step(self, dof_targets: torch.Tensor, u_ff) -> None:
         st2 = time.perf_counter()
         for i in range(self.robot.num_joints):
-            kp_val = float(self.robot.joint_stiffness[i].item())# * 0.0
-            kd_val = float(self.robot.joint_damping[i].item())# * 0.0
-            fb_joint_pos = float(dof_targets[i].item())
-            ff_joint_torque = float(u_ff[i].item())
-            ff_joint_pos = ff_joint_torque / kp_val
-            self.portal.motor_cmd[i].q = fb_joint_pos + ff_joint_pos
+            kp_val = 0.0#float(self.robot.joint_stiffness[i].item())# * 0.0
+            kd_val = 0.0#float(self.robot.joint_damping[i].item())# * 0.0
+            fb_joint_pos = 0.0#float(dof_targets[i].item())
+            ff_joint_torque = 0.0#float(u_ff[i].item())
+            ff_joint_pos = 0.0 #ff_joint_torque / kp_val
+            self.portal.motor_cmd[i].q = 0.0 #fb_joint_pos + ff_joint_pos
             self.portal.motor_cmd[i].kp = kp_val * 0.0# * 0.0
             self.portal.motor_cmd[i].kd = kd_val * 0.0# * 0.0
             self.portal.motor_cmd[i].tau = 0.0#ff_joint_torque #float(u_ff[i].item()) * 1.0# * 0.0
