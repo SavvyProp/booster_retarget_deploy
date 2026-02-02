@@ -12,6 +12,7 @@ from typing import List, Optional
 import torch
 import time
 from dataclasses import MISSING
+import onnx
 
 isaac_to_mj = [
     0, 4, 1, 5, 9, 13, 17, 21, 25, 2, 6, 10, 14, 18, 22, 26, 3, 7, 11, 15, 19, 23, 27, 8, 12, 16, 20, 24, 28
@@ -53,6 +54,10 @@ class LCCRetargetPolicy(Policy):
         dummy_obs = np.zeros((1, self.obs_size)).astype(np.float32)
         
         dummy_time = np.array([[self.counter - self.delay]]).astype(np.float32)
+        onm = onnx.load(self.cfg.checkpoint_path)
+        metadata_dict = {p.key: p.value for p in onm.metadata_props}
+        duration = int(metadata_dict["seq_len"]) - 1
+        duration = min(duration, 500)
         initial_out = self.session.run(None, 
                                        {"obs": dummy_obs, 
                                         "time_step": dummy_time})
@@ -64,7 +69,7 @@ class LCCRetargetPolicy(Policy):
         self.prev_body_quat = initial_out[4]
         self.prev_body_vel = initial_out[5]
         self.prev_body_angvel = initial_out[6]
-        self.duration = 500
+        self.duration = duration
         self.obs = np.zeros((self.obs_size,), dtype=np.float32)
         self.pin_lcc = PinLCC(
             urdf_path="tasks/lcc_retarget/booster_t1_pgnd/T1_29dof.urdf",

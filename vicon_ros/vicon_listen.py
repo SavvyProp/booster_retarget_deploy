@@ -59,8 +59,14 @@ class ViconTFClient:
         )
         t = ts.transform.translation
         r = ts.transform.rotation
+
+
+        tst = Time.from_msg(ts.header.stamp)
+
+        time_since = tst.nanoseconds * 1e-9 + tst.seconds * 1.0
+        
         rpy = self._quat_2_rpy([r.x, r.y, r.z, r.w])
-        return np.array([t.x, t.y, t.z]), np.array([r.w, r.x, r.y, r.z]), rpy
+        return np.array([t.x, t.y, t.z]), np.array([r.w, r.x, r.y, r.z]), rpy, time_since
     
     def get_marker_position_quat(self, segment: str, timeout: float = 0.001) -> tuple[float, float, float]:
         """
@@ -77,7 +83,7 @@ class ViconTFClient:
         )
         t = ts.transform.translation
         r = ts.transform.rotation
-        
+
         return np.array([t.x, t.y, t.z]), np.array([r.x, r.y, r.z, r.w])
     
     def get_marker_position_unlabled(self, idx: int, timeout: float = 0.001) -> tuple[float, float, float]:

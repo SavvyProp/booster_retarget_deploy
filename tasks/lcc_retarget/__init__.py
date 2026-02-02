@@ -19,9 +19,28 @@ class T1LCC_HDM_D(T1LCCRetargetControllerCfg):
         super().__post_init__()
         self.policy.checkpoint_path = "tasks/lcc_retarget/models/HDM_D/policy.onnx"
 
+@configclass
+class T1LCC_HDM_WS(T1LCCRetargetControllerCfg):
+    '''Human-like walk for T1 robot.'''
+    def __post_init__(self):
+        super().__post_init__()
+        self.policy.checkpoint_path = "tasks/lcc_retarget/models/HDM_WS/policy.onnx"
+
+@configclass
+class T1LCC_lafan_sidesteps(T1LCCRetargetControllerCfg):
+    '''Sidestepping motion for T1 robot.'''
+    def __post_init__(self):
+        super().__post_init__()
+        self.policy.checkpoint_path = "tasks/lcc_retarget/models/lafan_sidesteps/policy.onnx"
 
 register_task(
     "t1_lcc_retarget_CMU_41_02", T1LCC_CMU_41_02())
 
 register_task(
     "t1_lcc_retarget_HDM_D", T1LCC_HDM_D())
+
+register_task(
+    "t1_lcc_retarget_HDM_WS", T1LCC_HDM_WS())
+
+register_task(
+    "t1_lcc_retarget_lafan_sidesteps", T1LCC_lafan_sidesteps())
