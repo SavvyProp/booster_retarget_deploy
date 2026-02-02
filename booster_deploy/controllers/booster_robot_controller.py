@@ -495,7 +495,7 @@ class BoosterRobotController(BaseController):
         super().__init__(cfg)
         self.portal = portal
         slice_size = 5 * self.robot.num_joints + 7 + 12 + 30 + 6 + 6 + 5 + self.policy.obs_size
-        self.obs_list = np.zeros((10000, slice_size), dtype=np.float32)
+        self.obs_list = np.zeros((2000, slice_size), dtype=np.float32)
 
     def update_vel_command(self):
         cmd = self.portal.synced_command.read()[0]
@@ -553,10 +553,10 @@ class BoosterRobotController(BaseController):
             fb_joint_pos = float(dof_targets[i].item())
             ff_joint_torque = float(u_ff[i].item())
             ff_joint_pos = ff_joint_torque / kp_val
-            self.portal.motor_cmd[i].q = fb_joint_pos # + ff_joint_pos
+            self.portal.motor_cmd[i].q = fb_joint_pos + ff_joint_pos
             self.portal.motor_cmd[i].kp = kp_val# * 0.0
             self.portal.motor_cmd[i].kd = kd_val# * 0.0
-            self.portal.motor_cmd[i].tau = ff_joint_torque #float(u_ff[i].item()) * 1.0# * 0.0
+            self.portal.motor_cmd[i].tau = 0.0#ff_joint_torque #float(u_ff[i].item()) * 1.0# * 0.0
         self.portal.low_cmd_publisher.publish(self.portal.low_cmd)
 
     def stop(self):
@@ -589,17 +589,13 @@ class BoosterRobotController(BaseController):
             self.update_vel_command()
         self.start()
         next_inference_time = self.portal.timer.get_time()
-        last_save = time.time()
         self.portal.logger.info("Inference loop started")
 
         while self.is_running and not self.portal.exit_event.is_set():
-            st = time.perf_counter()
             if self.portal.timer.get_time() < next_inference_time:
                 time.sleep(0.0002)
                 continue
-            if last_save + 1.0 < time.time():
-                #np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
-                last_save = time.time()
+            st = time.perf_counter()
             next_inference_time += self.cfg.policy_dt
 
             info_slice = self.update_state()
@@ -633,8 +629,10 @@ class BoosterRobotController(BaseController):
             self.obs_list = np.roll(self.obs_list, -1, axis=0)
             self.obs_list[-1, :] = info_slice
             #print("Dof targets:", dof_targets.cpu().numpy())
+            
+            self.ctrl_step(dof_targets, u_ff)
             self.portal.logger.info("Eval Time: {:.4f} ms".format(
                 (time.perf_counter() - st) * 1000.0))
-            self.ctrl_step(dof_targets, u_ff)
+            
         np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
         self.portal.exit_event.set()

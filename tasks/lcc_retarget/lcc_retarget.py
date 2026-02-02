@@ -166,6 +166,8 @@ class LCCRetargetPolicy(Policy):
         self.last_action = action
     
     def inference(self):
+        print("Counter: ", self.counter)
+        
         #obs = self.compute_observation()
         dof_pos = self.robot.data.joint_pos.numpy()
         dof_vel = self.robot.data.joint_vel.numpy()
@@ -180,7 +182,9 @@ class LCCRetargetPolicy(Policy):
             base_lin_vel
         )
 
-        if self.decimation_counter % 5 == 0:
+        print("Last obs: ", obs[-1])
+
+        if self.decimation_counter % 4 == 0:
             self.eval_network(obs)
             self.decimation_counter = 0
 
@@ -233,7 +237,7 @@ class MujocoControllerCfg:
 @configclass
 class T1LCCRetargetControllerCfg(ControllerCfg):
     robot = T1_29DOF_LCC_CFG
-    policy_dt = 0.002
+    policy_dt = 0.005
     booster = BoosterRobotControllerCfg()
     mujoco = MujocoControllerCfg()
     policy = LCCRetargetPolicyCfg(
