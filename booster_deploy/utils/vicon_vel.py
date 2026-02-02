@@ -21,7 +21,7 @@ class ViconVelocityEstimator:
                 "Booster/booster_seg"
                 )
             
-            print("Vicon Time:", time_since)
+            #print("Vicon Time:", time_since)
             if self.last_time is None:
                 self.last_time = time_since
                 return self.vicon_pos, self.local_vel, self.global_ori
