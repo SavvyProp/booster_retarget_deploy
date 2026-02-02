@@ -547,6 +547,7 @@ class BoosterRobotController(BaseController):
         return info_slice
 
     def ctrl_step(self, dof_targets: torch.Tensor, u_ff) -> None:
+        st2 = time.perf_counter()
         for i in range(self.robot.num_joints):
             kp_val = float(self.robot.joint_stiffness[i].item())# * 0.0
             kd_val = float(self.robot.joint_damping[i].item())# * 0.0
@@ -557,6 +558,8 @@ class BoosterRobotController(BaseController):
             self.portal.motor_cmd[i].kp = kp_val * 0.0# * 0.0
             self.portal.motor_cmd[i].kd = kd_val * 0.0# * 0.0
             self.portal.motor_cmd[i].tau = 0.0#ff_joint_torque #float(u_ff[i].item()) * 1.0# * 0.0
+        print("For loop time: {:.4f} ms".format(
+            (time.perf_counter() - st2) * 1000.0))
         st = time.perf_counter()
         self.portal.low_cmd_publisher.publish(self.portal.low_cmd)
         print("internal publisher time: {:.4f} ms".format(
