@@ -25,6 +25,7 @@ class ViconVelocityEstimator:
             #print("Vicon Time:", time_since)
             if self.last_time is None:
                 self.last_time = time_since
+                self.vicon_pos = vicon_pos
                 return self.base_pos, self.local_vel, self.global_ori
             
             if abs(time_since - self.last_time) < 1e-5:
@@ -60,7 +61,7 @@ class ViconVelocityEstimator:
 
             dt = time_since - self.last_time
             self.last_time = time_since
-            alpha = 0.01
+            alpha = 0.2
             raw_global_vel = (vicon_pos - self.vicon_pos) / dt
             self.vicon_pos = vicon_pos
             self.global_vel = self.global_vel * (1 - alpha) + raw_global_vel * alpha
