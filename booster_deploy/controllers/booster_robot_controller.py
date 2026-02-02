@@ -634,8 +634,10 @@ class BoosterRobotController(BaseController):
             #print("Dof targets:", dof_targets.cpu().numpy())
             print("logging time: {:.4f} ms".format(
                 (time.perf_counter() - st2) * 1000.0))
-            
+            st3 = time.perf_counter()
             self.ctrl_step(dof_targets, u_ff)
+            print("publisher time: {:.4f} ms".format(
+                (time.perf_counter() - st3) * 1000.0))
             self.portal.logger.info("Eval Time: {:.4f} ms".format(
                 (time.perf_counter() - st) * 1000.0))
             
