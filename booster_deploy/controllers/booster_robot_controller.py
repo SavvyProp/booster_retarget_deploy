@@ -553,10 +553,10 @@ class BoosterRobotController(BaseController):
             fb_joint_pos = float(dof_targets[i].item())
             ff_joint_torque = float(u_ff[i].item())
             ff_joint_pos = ff_joint_torque / kp_val
-            self.portal.motor_cmd[i].q = fb_joint_pos + ff_joint_pos
+            self.portal.motor_cmd[i].q = fb_joint_pos # + ff_joint_pos
             self.portal.motor_cmd[i].kp = kp_val# * 0.0
             self.portal.motor_cmd[i].kd = kd_val# * 0.0
-            self.portal.motor_cmd[i].tau = 0.0 #float(u_ff[i].item()) * 1.0# * 0.0
+            self.portal.motor_cmd[i].tau = ff_joint_torque #float(u_ff[i].item()) * 1.0# * 0.0
         self.portal.low_cmd_publisher.publish(self.portal.low_cmd)
 
     def stop(self):

@@ -233,7 +233,7 @@ class MujocoControllerCfg:
 @configclass
 class T1LCCRetargetControllerCfg(ControllerCfg):
     robot = T1_29DOF_LCC_CFG
-    policy_dt = 0.004
+    policy_dt = 0.002
     booster = BoosterRobotControllerCfg()
     mujoco = MujocoControllerCfg()
     policy = LCCRetargetPolicyCfg(
