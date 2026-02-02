@@ -8,6 +8,7 @@ vve = ViconVelocityEstimator()
 local_vel_arr = np.zeros([10000, 3])
 
 for c in range(10000):
+    print(vve)
     pos, local_vel, global_ori = vve.update()
     local_vel_arr[c, :] = local_vel
     time.sleep(0.001)

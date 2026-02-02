@@ -24,7 +24,7 @@ class ViconVelocityEstimator:
             print("Vicon Time:", time_since)
             
             if abs(time_since - self.last_time) < 1e-4:
-                return  # Skip update if no new data
+                return self.vicon_pos, self.local_vel, self.global_ori  # Skip update if no new data
 
             marker_offset_body = np.array([0.150, 0.0, 0.162]) # top-center of Booster
             R_meas_body = np.array([[1.0, 0.0, 0.0],
@@ -72,5 +72,4 @@ class ViconVelocityEstimator:
             self.global_ori = R_world_body.flatten()
         except Exception as e:
             print("Failed to get marker position:", e)
-
         return self.vicon_pos, self.local_vel, self.global_ori
