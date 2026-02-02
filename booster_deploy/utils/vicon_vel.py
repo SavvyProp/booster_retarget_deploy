@@ -11,7 +11,7 @@ class ViconVelocityEstimator:
         self.global_vel = np.zeros([3])
         self.local_vel =  np.zeros([3])
         #self.last_time = time.time()
-        self.last_time = 0.0
+        self.last_time = None
         self.global_ori = np.eye(3).flatten()
         #self.last_nsec = None
 
@@ -22,6 +22,9 @@ class ViconVelocityEstimator:
                 )
             
             print("Vicon Time:", time_since)
+            if self.last_time is None:
+                self.last_time = time_since
+                return self.vicon_pos, self.local_vel, self.global_ori
             
             if abs(time_since - self.last_time) < 1e-4:
                 return self.vicon_pos, self.local_vel, self.global_ori  # Skip update if no new data
