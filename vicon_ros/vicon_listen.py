@@ -63,7 +63,7 @@ class ViconTFClient:
 
         tst = Time.from_msg(ts.header.stamp)
 
-        time_since = tst.nanoseconds * 1e-9 + tst.seconds * 1.0
+        time_since = tst.nanoseconds * 1e-9
         
         rpy = self._quat_2_rpy([r.x, r.y, r.z, r.w])
         return np.array([t.x, t.y, t.z]), np.array([r.w, r.x, r.y, r.z]), rpy, time_since
