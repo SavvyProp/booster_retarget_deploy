@@ -557,7 +557,10 @@ class BoosterRobotController(BaseController):
             self.portal.motor_cmd[i].kp = kp_val * 0.0# * 0.0
             self.portal.motor_cmd[i].kd = kd_val * 0.0# * 0.0
             self.portal.motor_cmd[i].tau = 0.0#ff_joint_torque #float(u_ff[i].item()) * 1.0# * 0.0
+        st = time.perf_counter()
         self.portal.low_cmd_publisher.publish(self.portal.low_cmd)
+        print("internal publisher time: {:.4f} ms".format(
+            (time.perf_counter() - st) * 1000.0))
 
     def stop(self):
         np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
