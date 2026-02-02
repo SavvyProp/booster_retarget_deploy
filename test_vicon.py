@@ -12,4 +12,4 @@ for c in range(10000):
     local_vel_arr[c, :] = local_vel
     time.sleep(0.001)
     print("Local Vel:", local_vel)
-np.savetxt("eval_data/vicon_local_vel.txt", local_vel_arr)
+np.savetxt("eval_data/vicon_local_vel.csv", local_vel_arr, delimiter = ',')
