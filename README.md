@@ -75,7 +75,12 @@ Booster Deploy is a lightweight deployment framework that supports running contr
    ```bash
    python3 scripts/deploy.py --task <TASK_NAME>
    ```
-
+- Run Vicon..
+  ```
+colcon build --packages-select vicon_bridge vicon_launch_pkg
+source install/setup.bash
+ros2 launch vicon_launch_pkg vicon_launch.py
+  ```
 
 ## Repository Layout
 
