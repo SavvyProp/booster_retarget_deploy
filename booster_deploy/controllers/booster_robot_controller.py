@@ -638,6 +638,7 @@ class BoosterRobotController(BaseController):
             self.obs_list = np.roll(self.obs_list, -1, axis=0)
             self.obs_list[-1, :] = info_slice
             #print("Dof targets:", dof_targets.cpu().numpy())
+            print("info slice: ", info_slice[0:2])
             print("logging time: {:.4f} ms".format(
                 (time.perf_counter() - st2) * 1000.0))
             st3 = time.perf_counter()
