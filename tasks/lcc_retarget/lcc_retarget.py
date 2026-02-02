@@ -180,7 +180,7 @@ class LCCRetargetPolicy(Policy):
             base_lin_vel
         )
 
-        if self.decimation_counter % 10 == 0:
+        if self.decimation_counter % 5 == 0:
             self.eval_network(obs)
             self.decimation_counter = 0
 
@@ -233,7 +233,7 @@ class MujocoControllerCfg:
 @configclass
 class T1LCCRetargetControllerCfg(ControllerCfg):
     robot = T1_29DOF_LCC_CFG
-    policy_dt = 0.002
+    policy_dt = 0.004
     booster = BoosterRobotControllerCfg()
     mujoco = MujocoControllerCfg()
     policy = LCCRetargetPolicyCfg(

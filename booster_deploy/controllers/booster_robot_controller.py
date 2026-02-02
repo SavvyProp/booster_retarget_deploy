@@ -595,7 +595,7 @@ class BoosterRobotController(BaseController):
         while self.is_running and not self.portal.exit_event.is_set():
             st = time.perf_counter()
             if self.portal.timer.get_time() < next_inference_time:
-                time.sleep(0.0001)
+                time.sleep(0.0002)
                 continue
             if last_save + 1.0 < time.time():
                 #np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
