@@ -606,11 +606,18 @@ class BoosterRobotController(BaseController):
             self.portal.metrics["policy_step"].mark()
             dof_targets, u_ff = self.policy_step()
             
-            f = np.array(self.policy.f)
-            com_accs = np.array(self.policy.com_accs)
-            com_vel = np.array(self.policy.com_vel)
-            com_angvel = np.array(self.policy.com_angvel)
-            w = np.array(self.policy.w)
+            try:
+                f = np.array(self.policy.f)
+                com_accs = np.array(self.policy.com_accs)
+                com_vel = np.array(self.policy.com_vel)
+                com_angvel = np.array(self.policy.com_angvel)
+                w = np.array(self.policy.w)
+            except:
+                f = np.zeros((30,), dtype=np.float32)
+                com_accs = np.zeros((6,), dtype=np.float32)
+                com_vel = np.zeros((3,), dtype=np.float32)
+                com_angvel = np.zeros((3,), dtype=np.float32)
+                w = np.zeros((5,), dtype=np.float32)
             fbt = self.robot.data.feedback_torque.cpu().numpy()
 
             #info_slice = self.robot_slice(dof_targets)
@@ -628,8 +635,6 @@ class BoosterRobotController(BaseController):
             #print("Dof targets:", dof_targets.cpu().numpy())
             self.portal.logger.info("Eval Time: {:.4f} ms".format(
                 (time.perf_counter() - st) * 1000.0))
-            self.portal.logger.info("Send CMD")
             self.ctrl_step(dof_targets, u_ff)
-            self.portal.logger.info("CMD Sent")
         np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
         self.portal.exit_event.set()
