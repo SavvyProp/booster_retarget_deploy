@@ -597,13 +597,14 @@ class BoosterRobotController(BaseController):
                 continue
             st = time.perf_counter()
             next_inference_time += self.cfg.policy_dt
+            print(self.cfg.policy_dt)
 
             info_slice = self.update_state()
             self.portal.metrics["policy_step"].mark()
             dof_targets, u_ff = self.policy_step()
             print("policy step time: {:.4f} ms".format(
                 (time.perf_counter() - st) * 1000.0))
-            
+            st2 = time.perf_counter()
             try:
                 f = np.array(self.policy.f)
                 com_accs = np.array(self.policy.com_accs)
@@ -631,6 +632,8 @@ class BoosterRobotController(BaseController):
             self.obs_list = np.roll(self.obs_list, -1, axis=0)
             self.obs_list[-1, :] = info_slice
             #print("Dof targets:", dof_targets.cpu().numpy())
+            print("logging time: {:.4f} ms".format(
+                (time.perf_counter() - st2) * 1000.0))
             
             self.ctrl_step(dof_targets, u_ff)
             self.portal.logger.info("Eval Time: {:.4f} ms".format(
