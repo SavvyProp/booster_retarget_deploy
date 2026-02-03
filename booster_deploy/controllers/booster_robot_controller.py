@@ -551,10 +551,10 @@ class BoosterRobotController(BaseController):
         u_ff = list(map(float, u_ff.tolist()))
         st2 = time.perf_counter()
         for i in range(self.robot.num_joints):
-            if i == 9:
-                kp = 1.0
+            if i == 5:
+                tau = 0.1
             else:
-                kp = 0.0
+                tau = 0.0
             kp_val = self.robot.joint_stiffness[i]# * 0.0
             kd_val = self.robot.joint_damping[i]# * 0.0
             fb_joint_pos = dof_targets[i]
@@ -562,9 +562,9 @@ class BoosterRobotController(BaseController):
             ff_joint_pos = ff_joint_torque / kp_val
             new_q = self.robot.default_joint_pos_list[i]
             self.portal.motor_cmd[i].q = new_q#fb_joint_pos + ff_joint_pos
-            self.portal.motor_cmd[i].kp = kp #kp_val * 0.0 # * 0.0
+            self.portal.motor_cmd[i].kp = 0.0 #kp_val * 0.0 # * 0.0
             self.portal.motor_cmd[i].kd = kd_val # * 0.0
-            self.portal.motor_cmd[i].tau = 0.0#ff_joint_torque #float(u_ff[i].item()) * 1.0# * 0.0
+            self.portal.motor_cmd[i].tau = tau#ff_joint_torque #float(u_ff[i].item()) * 1.0# * 0.0
         print("For loop time: {:.4f} ms".format(
             (time.perf_counter() - st2) * 1000.0))
         st = time.perf_counter()
