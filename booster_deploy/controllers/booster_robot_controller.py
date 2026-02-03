@@ -546,9 +546,9 @@ class BoosterRobotController(BaseController):
         )
         return info_slice
 
-    def ctrl_step(self, dof_targets: torch.Tensor, u_ff) -> None:
+    def ctrl_step(self, dof_targets, u_ff) -> None:
         dof_targets = list(map(float, dof_targets.tolist()))
-        u_ff = list(map(float, dof_targets.tolist()))
+        u_ff = list(map(float, u_ff.tolist()))
         st2 = time.perf_counter()
         for i in range(self.robot.num_joints):
             kp_val = self.robot.joint_stiffness[i]# * 0.0
