@@ -3,6 +3,7 @@ from abc import abstractmethod
 import inspect
 import os
 import torch
+import numpy as np
 
 from .controller_cfg import (
     ControllerCfg, PolicyCfg, RobotCfg, VelocityCommandCfg
@@ -52,20 +53,20 @@ class RobotData:
 class BoosterRobot:
     cfg: RobotCfg
     data: RobotData
-    joint_stiffness: torch.Tensor
-    joint_damping: torch.Tensor
-    default_joint_pos: torch.Tensor
+    joint_stiffness: np.ndarray
+    joint_damping: np.ndarray
+    default_joint_pos: np.ndarray
 
     def __init__(self, cfg: RobotCfg) -> None:
         self.cfg = cfg
         self.data = RobotData(cfg)
 
-        self.joint_stiffness = torch.tensor(cfg.joint_stiffness, dtype=torch.float32)
+        self.joint_stiffness = np.array(cfg.joint_stiffness, dtype=np.float32)
 
-        self.joint_damping = torch.tensor(cfg.joint_damping, dtype=torch.float32)
+        self.joint_damping = np.array(cfg.joint_damping, dtype=np.float32)
 
-        self.default_joint_pos = torch.tensor(cfg.default_joint_pos, dtype=torch.float32)
-        self.effort_limit = torch.tensor(cfg.effort_limit, dtype=torch.float32)
+        self.default_joint_pos = np.array(cfg.default_joint_pos, dtype=np.float32)
+        self.effort_limit = np.array(cfg.effort_limit, dtype=np.float32)
 
     @property
     def num_joints(self) -> int:

@@ -28,7 +28,7 @@ class MujocoController(BaseController):
             [
                 np.array(self.cfg.mujoco.init_pos, dtype=np.float32),
                 np.array(self.cfg.mujoco.init_quat, dtype=np.float32),
-                self.robot.default_joint_pos.numpy(),
+                self.robot.default_joint_pos,
             ]
         )
         mujoco.mj_forward(self.mj_model, self.mj_data)
@@ -215,15 +215,15 @@ class MujocoController(BaseController):
 
         dof_pos = self.mj_data.qpos.astype(np.float32)[7:]
         dof_vel = self.mj_data.qvel.astype(np.float32)[6:]
-        kp = self.robot.joint_stiffness.numpy()
-        kd = self.robot.joint_damping.numpy()
+        kp = self.robot.joint_stiffness
+        kd = self.robot.joint_damping
         # ctrl_limit = [
         #     np.minimum(self.mj_model.actuator_forcerange[:, 0],
         #                self.mj_model.actuator_ctrlrange[:, 0]),
         #     np.maximum(self.mj_model.actuator_forcerange[:, 1],
         #                self.mj_model.actuator_ctrlrange[:, 1]),
         # ]
-        ctrl_limit = self.robot.effort_limit.numpy()
+        ctrl_limit = self.robot.effort_limit
         for i in range(self.decimation):
             self.mj_data.ctrl = np.clip(
                 kp * (dof_targets - dof_pos) - kd * dof_vel + u_ff,

@@ -184,7 +184,7 @@ class LCCRetargetPolicy(Policy):
 
         print("Last obs: ", obs[-1])
 
-        if self.decimation_counter % 4 == 0:
+        if self.decimation_counter % 10 == 0:
             self.eval_network(obs)
             self.decimation_counter = 0
 
@@ -237,7 +237,7 @@ class MujocoControllerCfg:
 @configclass
 class T1LCCRetargetControllerCfg(ControllerCfg):
     robot = T1_29DOF_LCC_CFG
-    policy_dt = 0.005
+    policy_dt = 0.002
     booster = BoosterRobotControllerCfg()
     mujoco = MujocoControllerCfg()
     policy = LCCRetargetPolicyCfg(
