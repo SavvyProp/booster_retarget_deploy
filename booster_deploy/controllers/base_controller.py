@@ -60,10 +60,9 @@ class BoosterRobot:
     def __init__(self, cfg: RobotCfg) -> None:
         self.cfg = cfg
         self.data = RobotData(cfg)
+        self.joint_stiffness = list(map(float, np.array(cfg.joint_stiffness, dtype=np.float32).tolist()))
 
-        self.joint_stiffness = np.array(cfg.joint_stiffness, dtype=np.float32)
-
-        self.joint_damping = np.array(cfg.joint_damping, dtype=np.float32)
+        self.joint_damping = list(map(float, np.array(cfg.joint_damping, dtype=np.float32).tolist()))
 
         self.default_joint_pos = np.array(cfg.default_joint_pos, dtype=np.float32)
         self.effort_limit = np.array(cfg.effort_limit, dtype=np.float32)
