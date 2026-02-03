@@ -16,13 +16,13 @@ class RobotData:
     described in RobotCfg.joint_names
     """
 
-    joint_pos: torch.Tensor
-    joint_vel: torch.Tensor
-    feedback_torque: torch.Tensor
-    root_pos_w: torch.Tensor
-    root_quat_w: torch.Tensor
-    root_lin_vel_b: torch.Tensor
-    root_ang_vel_b: torch.Tensor
+    joint_pos: np.ndarray
+    joint_vel: np.ndarray
+    feedback_torque: np.ndarray
+    root_pos_w: np.ndarray
+    root_quat_w: np.ndarray
+    root_lin_vel_b: np.ndarray
+    root_ang_vel_b: np.ndarray
 
     def __init__(self, cfg: RobotCfg) -> None:
         self.cfg = cfg
@@ -31,13 +31,13 @@ class RobotData:
         self.sim2real_joint_indexes = [cfg.sim_joint_names.index(name) for name in cfg.joint_names]
         self.device = "cpu"
 
-        self.joint_pos: torch.Tensor = torch.zeros(num_joints, dtype=torch.float32)
-        self.joint_vel: torch.Tensor = torch.zeros(num_joints, dtype=torch.float32)
-        self.feedback_torque: torch.Tensor = torch.zeros(num_joints, dtype=torch.float32)
-        self.root_lin_vel_b: torch.Tensor = torch.zeros(3, dtype=torch.float32)
-        self.root_ang_vel_b: torch.Tensor = torch.zeros(3, dtype=torch.float32)
-        self.root_pos_w: torch.Tensor = torch.zeros(3, dtype=torch.float32)
-        self.root_quat_w: torch.Tensor = torch.zeros(4, dtype=torch.float32)
+        self.joint_pos: np.ndarray = np.zeros((num_joints,), dtype=np.float32)
+        self.joint_vel: np.ndarray = np.zeros(num_joints, dtype=np.float32)
+        self.feedback_torque: np.ndarray = np.zeros(num_joints, dtype=np.float32)
+        self.root_lin_vel_b: np.ndarray = np.zeros((3,), dtype=np.float32)
+        self.root_ang_vel_b: np.ndarray = np.zeros((3,), dtype=np.float32)
+        self.root_pos_w: np.ndarray = np.zeros((3,), dtype=np.float32)
+        self.root_quat_w: np.ndarray = np.zeros((3,), dtype=np.float32)
 
     def to(self, device: torch.device | str) -> None:
         self.device = device

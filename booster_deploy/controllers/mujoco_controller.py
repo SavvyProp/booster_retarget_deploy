@@ -80,7 +80,7 @@ class MujocoController(BaseController):
 
     def set_reference_qpos(
         self,
-        qpos: np.ndarray | torch.Tensor | None,
+        qpos,
     ) -> None:
         """Set the reference generalized coordinates (qpos) for ghost rendering.
 
@@ -157,20 +157,13 @@ class MujocoController(BaseController):
             base_quat,
             ordering="wxyz",)
 
-        self.robot.data.joint_pos = torch.from_numpy(
-            dof_pos).to(self.robot.data.device)
-        self.robot.data.joint_vel = torch.from_numpy(
-            dof_vel).to(self.robot.data.device)
-        self.robot.data.feedback_torque = torch.from_numpy(
-            dof_torque).to(self.robot.data.device)
-        self.robot.data.root_pos_w = torch.from_numpy(
-            base_pos_w).to(self.robot.data.device)
-        self.robot.data.root_quat_w = torch.from_numpy(
-            base_quat).to(self.robot.data.device)
-        self.robot.data.root_lin_vel_b = torch.from_numpy(
-            base_lin_vel_b).to(self.robot.data.device)
-        self.robot.data.root_ang_vel_b = torch.from_numpy(
-            base_ang_vel_b).to(self.robot.data.device)
+        self.robot.data.joint_pos = dof_pos
+        self.robot.data.joint_vel = dof_vel
+        self.robot.data.feedback_torque = dof_torque
+        self.robot.data.root_pos_w = base_pos_w
+        self.robot.data.root_quat_w = base_quat
+        self.robot.data.root_lin_vel_b = base_lin_vel_b
+        self.robot.data.root_ang_vel_b = base_ang_vel_b
 
     def log_states(self, dof_targets: np.ndarray) -> None:
         if self.cfg.mujoco.log_states is not None:
@@ -207,7 +200,7 @@ class MujocoController(BaseController):
                 print(f'saved {self.cfg.mujoco.log_states}.npz '
                       f'at {self._step_count} steps')
 
-    def ctrl_step(self, dof_targets: torch.Tensor, u_ff: torch.Tensor | None = None) -> None:
+    def ctrl_step(self, dof_targets, u_ff) -> None:
         dof_targets = dof_targets  # type: ignore
         self.log_states(dof_targets)
         if self.vel_command is not None:
@@ -215,8 +208,8 @@ class MujocoController(BaseController):
 
         dof_pos = self.mj_data.qpos.astype(np.float32)[7:]
         dof_vel = self.mj_data.qvel.astype(np.float32)[6:]
-        kp = self.robot.joint_stiffness
-        kd = self.robot.joint_damping
+        kp = np.array(self.robot.joint_stiffness)
+        kd = np.array(self.robot.joint_damping)
         # ctrl_limit = [
         #     np.minimum(self.mj_model.actuator_forcerange[:, 0],
         #                self.mj_model.actuator_ctrlrange[:, 0]),

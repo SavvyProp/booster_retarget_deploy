@@ -115,10 +115,10 @@ class PDRetargetPolicy(Policy):
         
         obs = np.concatenate([
             cmd[0, :], 
-            base_lin_vel.numpy(),
-            base_ang_vel.numpy(),
-            mapped_dof_pos.numpy(),
-            mapped_dof_vel.numpy(),
+            base_lin_vel,
+            base_ang_vel,
+            mapped_dof_pos,
+            mapped_dof_vel,
             self.last_action.reshape(-1)
         ], axis=-1)
 

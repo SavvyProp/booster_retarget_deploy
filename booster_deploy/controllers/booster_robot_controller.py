@@ -506,23 +506,12 @@ class BoosterRobotController(BaseController):
 
     def update_state(self) -> None:
         state = self.portal.synced_state.read()[0]
-        self.robot.data.root_quat_w = torch.from_numpy(
-            state["root_quat_w"]).to(dtype=torch.float32).to(
-                self.robot.data.device)
-        self.robot.data.joint_pos = torch.from_numpy(
-            state["joint_pos"]).to(dtype=torch.float32).to(
-                self.robot.data.device)
-        self.robot.data.joint_vel = torch.from_numpy(
-            state["joint_vel"]).to(dtype=torch.float32).to(
-                self.robot.data.device)
-        self.robot.data.feedback_torque = torch.from_numpy(
-            state["feedback_torque"]).to(dtype=torch.float32).to(
-                self.robot.data.device)
-        self.robot.data.root_pos_w = torch.from_numpy(
-            state["root_pos_w"]).to(dtype=torch.float32).to(
-                self.robot.data.device)
-        rpy_t = torch.from_numpy(state["root_rpy_w"]).to(
-            dtype=torch.float32).to(self.robot.data.device)
+        self.robot.data.root_quat_w = state["root_quat_w"]
+        self.robot.data.joint_pos = state["joint_pos"]
+        self.robot.data.joint_vel = state["joint_vel"]
+        self.robot.data.feedback_torque = state["feedback_torque"]
+        self.robot.data.root_pos_w = state["root_pos_w"]
+        rpy_t = state["root_rpy_w"]
         self.robot.data.root_quat_w = lab_math.quat_from_euler_xyz(
             *rpy_t
         ).squeeze()
@@ -532,13 +521,8 @@ class BoosterRobotController(BaseController):
         #        state["root_lin_vel_w"]).to(dtype=torch.float32).to(
         #            self.robot.data.device)
         #)
-        self.robot.data.root_ang_vel_b = torch.from_numpy(
-            state["root_ang_vel_b"]).to(dtype=torch.float32).to(
-                self.robot.data.device)
-        self.robot.data.root_lin_vel_b = torch.from_numpy(
-            state["root_lin_vel_b"]).to(dtype=torch.float32).to(
-                self.robot.data.device
-        )
+        self.robot.data.root_ang_vel_b = state["root_ang_vel_b"]
+        self.robot.data.root_lin_vel_b = state["root_lin_vel_b"]
 
         info_slice = self.robot_slice(
             state["root_pos_w"],
@@ -552,7 +536,7 @@ class BoosterRobotController(BaseController):
         st2 = time.perf_counter()
         for i in range(self.robot.num_joints):
             if i == 5:
-                tau = 0.1
+                tau = 0.0
             else:
                 tau = 0.0
             kp_val = self.robot.joint_stiffness[i]# * 0.0
@@ -578,10 +562,10 @@ class BoosterRobotController(BaseController):
         self.portal.exit_event.set()
 
     def robot_slice(self, global_pos, global_ori):
-        joint_pos = self.robot.data.joint_pos.cpu().numpy()
-        joint_vel = self.robot.data.joint_vel.cpu().numpy()
-        root_lin_vel_b = self.robot.data.root_lin_vel_b.cpu().numpy()
-        root_ang_vel_b = self.robot.data.root_ang_vel_b.cpu().numpy()
+        joint_pos = self.robot.data.joint_pos
+        joint_vel = self.robot.data.joint_vel
+        root_lin_vel_b = self.robot.data.root_lin_vel_b
+        root_ang_vel_b = self.robot.data.root_ang_vel_b
         time_stamp = np.array([self.portal.timer.get_time()])
         obs = self.policy.obs
         flat_obs = np.concatenate([
@@ -631,7 +615,7 @@ class BoosterRobotController(BaseController):
                 com_vel = np.zeros((3,), dtype=np.float32)
                 com_angvel = np.zeros((3,), dtype=np.float32)
                 w = np.zeros((5,), dtype=np.float32)
-            fbt = self.robot.data.feedback_torque.cpu().numpy()
+            fbt = self.robot.data.feedback_torque
 
             #info_slice = self.robot_slice(dof_targets)
             info_slice = np.concatenate([info_slice, 
