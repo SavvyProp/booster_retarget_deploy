@@ -512,9 +512,9 @@ class BoosterRobotController(BaseController):
         self.robot.data.feedback_torque = state["feedback_torque"]
         self.robot.data.root_pos_w = state["root_pos_w"]
         rpy_t = state["root_rpy_w"]
-        self.robot.data.root_quat_w = lab_math.quat_from_euler_xyz(
-            *rpy_t
-        ).squeeze()
+        #self.robot.data.root_quat_w = lab_math.quat_from_euler_xyz(
+        #    *rpy_t
+        #).squeeze()
         #self.robot.data.root_lin_vel_b = lab_math.quat_apply_inverse(
         #    self.robot.data.root_quat_w,
         #    torch.from_numpy(
