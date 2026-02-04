@@ -1,6 +1,6 @@
 import numpy as np
 
-class AccelerationFusion:
+class AccelerationFusion: # Jank acceleration + Vicon velocity fusion
     def __init__(self, window_size=1000):
         self.local_vel = np.zeros([window_size, 3])
 
@@ -12,7 +12,6 @@ class AccelerationFusion:
         self.vel_est = np.zeros([window_size, 3])
 
         self.weight = np.square(np.linspace(1.0, 0.1, window_size))
-        self.weight = self.weight / np.sum(self.weight)
         self.weight = self.weight[:, None]  # Make it a column vector
 
     def update(self, vicon_local_vel, imu_acc, timestamp):
@@ -25,7 +24,7 @@ class AccelerationFusion:
         self.acc_data[0, :] = imu_acc
         self.timestamps = np.roll(self.timestamps, 1)
         self.timestamps[0] = timestamp
-        self.start_index = min(self.start_index + 1, self.local_vel.shape[0] - 1)
+        self.start_index = min(self.start_index + 1, self.local_vel.shape[0])
 
         # For each element from 0 to start index, compute the velocity by integrating acc
         n = self.start_index
@@ -46,6 +45,6 @@ class AccelerationFusion:
             self.vel_est[:n, :] = self.local_vel[:n, :] + dv
 
         # Weigh each velocity estimate: newer samples get higher weight
-        vel_final = np.sum(self.weight * self.vel_est, axis = 0)
+        vel_final = np.sum(self.weight[:n, :] * self.vel_est[:n, :], axis = 0) / np.sum(self.weight[:n, :])
         self.local_vel[0, :] = vel_final
         return vel_final
