@@ -88,6 +88,7 @@ class LCCRetargetPolicy(Policy):
 
     def reset(self):
         self.counter = 0
+        self.last_action = np.zeros_like(self.last_action)
         return
     
     def compute_observation(self, dof_pos, dof_vel, base_ang_vel, base_lin_vel):

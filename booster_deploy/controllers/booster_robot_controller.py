@@ -535,6 +535,8 @@ class BoosterRobotController(BaseController):
             w = np.zeros((5,), dtype=np.float32)
         fbt = self.robot.data.feedback_torque
         raw_linvel = state["root_lin_vel_b_raw"]
+        motion_counter = self.policy.counter
+
         info_slice = np.concatenate([joint_pos,
                                      joint_vel,
                                     root_lin_vel_b, 
@@ -551,7 +553,8 @@ class BoosterRobotController(BaseController):
                                     com_accs,
                                     com_vel,
                                     com_angvel,
-                                    raw_linvel], axis = -1)
+                                    raw_linvel,
+                                    np.array([motion_counter])], axis = -1)
         self.obs_list = np.roll(self.obs_list, -1, axis=0)
         self.obs_list[-1, :] = info_slice
 
@@ -606,8 +609,6 @@ class BoosterRobotController(BaseController):
 
     
     def run(self):
-        # Wait for startup ?
-        time.sleep(0.5)
         self.update_state()
         if self.vel_command is not None:
             self.update_vel_command()
@@ -618,9 +619,13 @@ class BoosterRobotController(BaseController):
 
         last_save_time = self.portal.timer.get_time()
 
+        # Warm start policy step
+        dof_targets, u_ff = self.policy_step()
+        self.policy.reset()
+
         while self.is_running and not self.portal.exit_event.is_set():
             if self.portal.timer.get_time() < next_inference_time:
-                
+                time.sleep(0.0001)
                 continue
             st = time.perf_counter()
             next_inference_time += self.cfg.policy_dt

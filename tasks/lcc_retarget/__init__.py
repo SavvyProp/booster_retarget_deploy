@@ -33,6 +33,13 @@ class T1LCC_lafan_sidesteps(T1LCCRetargetControllerCfg):
         super().__post_init__()
         self.policy.checkpoint_path = "tasks/lcc_retarget/models/lafan_sidesteps/policy.onnx"
 
+@configclass
+class T1LCC_accad_W2K(T1LCCRetargetControllerCfg):
+    '''Sidestepping motion for T1 robot.'''
+    def __post_init__(self):
+        super().__post_init__()
+        self.policy.checkpoint_path = "tasks/lcc_retarget/models/accad_W2K/policy.onnx"
+
 register_task(
     "t1_lcc_retarget_CMU_41_02", T1LCC_CMU_41_02())
 
@@ -44,3 +51,6 @@ register_task(
 
 register_task(
     "t1_lcc_retarget_lafan_sidesteps", T1LCC_lafan_sidesteps())
+
+register_task(
+    "t1_lcc_retarget_accad_W2K", T1LCC_accad_W2K())
