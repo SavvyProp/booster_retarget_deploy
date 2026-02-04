@@ -502,7 +502,7 @@ class BoosterRobotController(BaseController):
     def __init__(self, cfg: ControllerCfg, portal: BoosterRobotPortal) -> None:
         super().__init__(cfg)
         self.portal = portal
-        slice_size = 5 * self.robot.num_joints + 7 + 12 + 30 + 6 + 6 + 3 + 5 + self.policy.obs_size
+        slice_size = 5 * self.robot.num_joints + 7 + 12 + 30 + 6 + 6 + 3 + 5 + 1 + self.policy.obs_size
         self.obs_list = np.zeros((1000, slice_size), dtype=np.float32)
 
     def update_vel_command(self):
