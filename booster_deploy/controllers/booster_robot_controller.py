@@ -606,6 +606,8 @@ class BoosterRobotController(BaseController):
 
     
     def run(self):
+        # Wait for startup ?
+        time.sleep(0.5)
         self.update_state()
         if self.vel_command is not None:
             self.update_vel_command()
