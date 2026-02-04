@@ -38,6 +38,7 @@ class RobotData:
         self.root_ang_vel_b: np.ndarray = np.zeros((3,), dtype=np.float32)
         self.root_pos_w: np.ndarray = np.zeros((3,), dtype=np.float32)
         self.root_quat_w: np.ndarray = np.zeros((3,), dtype=np.float32)
+        self.grav_vec_b: np.ndarray = np.zeros((3,), dtype=np.float32)
 
     def to(self, device: torch.device | str) -> None:
         self.device = device

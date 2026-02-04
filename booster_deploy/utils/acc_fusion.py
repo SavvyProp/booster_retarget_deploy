@@ -48,3 +48,65 @@ class AccelerationFusion: # Jank acceleration + Vicon velocity fusion
         vel_final = np.sum(self.weight[:n, :] * self.vel_est[:n, :], axis = 0) / np.sum(self.weight[:n, :])
         self.local_vel[0, :] = vel_final
         return vel_final
+    
+    def compute_grav_vec(self, acc, rpy, g=9.80665, accel_blend=0.2):
+        """Estimate gravity vector in the sensor/body frame.
+
+        Uses the provided roll/pitch/yaw to rotate the world gravity vector into the
+        body frame (R = Rz(yaw) @ Ry(pitch) @ Rx(roll)). Optionally blends this
+        orientation-based estimate with the accelerometer direction (helpful if the
+        attitude estimate is noisy and the platform is quasi-static).
+
+        Args:
+            acc: 3-vector accelerometer measurement (m/s^2).
+            rpy: 3-vector [roll, pitch, yaw] in radians.
+            g: gravity magnitude.
+            accel_blend: 0..1 blend factor toward accelerometer-direction estimate.
+                         0 -> pure rpy-based, 1 -> pure accel-direction.
+
+        Returns:
+            3-vector gravity estimate in body frame (m/s^2).
+        """
+        acc = np.asarray(acc, dtype=float).reshape(3,)
+        rpy = np.asarray(rpy, dtype=float).reshape(3,)
+
+        roll, pitch, yaw = float(rpy[0]), float(rpy[1]), float(rpy[2])
+
+        cr, sr = np.cos(roll), np.sin(roll)
+        cp, sp = np.cos(pitch), np.sin(pitch)
+        cy, sy = np.cos(yaw), np.sin(yaw)
+
+        R_x = np.array([[1.0, 0.0, 0.0],
+                        [0.0,  cr, -sr],
+                        [0.0,  sr,  cr]], dtype=float)
+        R_y = np.array([[ cp, 0.0, sp],
+                        [0.0, 1.0, 0.0],
+                        [-sp, 0.0, cp]], dtype=float)
+        R_z = np.array([[ cy, -sy, 0.0],
+                        [ sy,  cy, 0.0],
+                        [0.0, 0.0, 1.0]], dtype=float)
+
+        # World->body rotation in the same convention as elsewhere: R_world_body = Rz @ Ry @ Rx
+        # So body gravity is: g_body = R_world_body.T @ g_world
+        R_world_body = R_z @ R_y @ R_x
+        g_world = np.array([0.0, 0.0, -g], dtype=float)
+        g_body_from_rpy = (R_world_body.T @ g_world)
+
+        # Accelerometer-based direction (quasi-static assumption). Use only direction.
+        acc_norm = float(np.linalg.norm(acc))
+        if np.isfinite(acc_norm) and acc_norm > 1e-6:
+            g_body_from_acc_dir = g * (acc / acc_norm)
+        else:
+            g_body_from_acc_dir = g_body_from_rpy
+
+        w = float(np.clip(accel_blend, 0.0, 1.0))
+        g_body = (1.0 - w) * g_body_from_rpy + w * g_body_from_acc_dir
+
+        # Ensure magnitude ~= g
+        n = float(np.linalg.norm(g_body))
+        if np.isfinite(n) and n > 1e-6:
+            g_body = g * (g_body / n)
+        else:
+            g_body = g_body_from_rpy
+
+        return g_body

@@ -190,7 +190,10 @@ class LCCRetargetPolicy(Policy):
             self.decimation_counter = 0
 
         r_wb = quat_to_rotmat_wxyz(base_quat)
-        grav_vec = r_wb.T @ np.array([0.0, 0.0, -9.81], dtype=np.float32)
+        if self.robot.data.grav_vec_b[2] == 0.0:
+            grav_vec = r_wb.T @ np.array([0.0, 0.0, -9.81], dtype=np.float32)
+        else:
+            grav_vec = self.robot.data.grav_vec_b
         print("Gravity vector: ", grav_vec)
         u_ff, pd_pos = self.pin_lcc.step(
             base_lin_vel,

@@ -126,6 +126,7 @@ class BoosterRobotPortal:
                 ("root_pos_w", float, (3,)),
                 ("root_lin_vel_b", float, (3,)),
                 ("root_lin_vel_b_raw", float, (3,)),
+                ("grav_vec_b", float, (3,)),
                 ("joint_pos", float, (self.robot.num_joints,)),
                 ("joint_vel", float, (self.robot.num_joints,)),
                 ("feedback_torque", float, (self.robot.num_joints,)),
@@ -247,7 +248,8 @@ class BoosterRobotPortal:
             dof_pos = np.zeros(self.robot.num_joints, dtype=np.float32)
             dof_vel = np.zeros(self.robot.num_joints, dtype=np.float32)
             fb_torque = np.zeros(self.robot.num_joints, dtype=np.float32)
-            fuse_vel = self.acc_f.update(self.local_vel, acc, ct)
+            #fuse_vel = self.acc_f.update(self.local_vel, acc, ct)
+            grav_vec = self.acc_f.compute_grav_vec(acc, rpy)
 
             for i, motor in enumerate(low_state_msg.motor_state_serial):
                 dof_pos[i] = motor.q
@@ -265,6 +267,7 @@ class BoosterRobotPortal:
             self._state_buf[0]["joint_pos"][:] = dof_pos
             self._state_buf[0]["joint_vel"][:] = dof_vel
             self._state_buf[0]["feedback_torque"][:] = fb_torque
+            self._state_buf[0]["grav_vec_b"][:] = grav_vec
             
             self.synced_state.write(self._state_buf)
 
@@ -564,6 +567,8 @@ class BoosterRobotController(BaseController):
         self.robot.data.joint_vel = state["joint_vel"]
         self.robot.data.feedback_torque = state["feedback_torque"]
         self.robot.data.root_pos_w = state["root_pos_w"]
+        self.robot.data.grav_vec_b = state["grav_vec_b"]
+        print("Grav vec:", self.robot.data.grav_vec_b)
         #rpy_t = state["root_rpy_w"]
         #self.robot.data.root_quat_w = lab_math.quat_from_euler_xyz(
         #    *rpy_t
