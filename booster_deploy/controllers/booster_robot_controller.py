@@ -504,7 +504,7 @@ class BoosterRobotController(BaseController):
     def __init__(self, cfg: ControllerCfg, portal: BoosterRobotPortal) -> None:
         super().__init__(cfg)
         self.portal = portal
-        slice_size = 5 * self.robot.num_joints + 7 + 12 + 30 + 6 + 6 + 3 + 5 + 1 + self.policy.obs_size
+        slice_size = 5 * self.robot.num_joints + 7 + 12 + 30 + 6 + 6 + 3 + 5 + 1 + self.policy.obs_size + 3
         self.obs_list = np.zeros((1000, slice_size), dtype=np.float32)
 
     def update_vel_command(self):
@@ -538,6 +538,7 @@ class BoosterRobotController(BaseController):
         fbt = self.robot.data.feedback_torque
         raw_linvel = state["root_lin_vel_b_raw"]
         motion_counter = self.policy.counter
+        grav_vec = state["grav_vec_b"]
 
         info_slice = np.concatenate([joint_pos,
                                      joint_vel,
@@ -556,7 +557,8 @@ class BoosterRobotController(BaseController):
                                     com_vel,
                                     com_angvel,
                                     raw_linvel,
-                                    np.array([motion_counter])], axis = -1)
+                                    np.array([motion_counter]),
+                                    grav_vec], axis = -1)
         self.obs_list = np.roll(self.obs_list, -1, axis=0)
         self.obs_list[-1, :] = info_slice
 
@@ -596,8 +598,8 @@ class BoosterRobotController(BaseController):
             ff_joint_pos = ff_joint_torque / kp_val
             new_q = self.robot.default_joint_pos_list[i]
             self.portal.motor_cmd[i].q = fb_joint_pos + ff_joint_pos
-            self.portal.motor_cmd[i].kp = kp_val * 0.0 # * 0.0
-            self.portal.motor_cmd[i].kd = kd_val * 0.0 # * 0.0
+            self.portal.motor_cmd[i].kp = kp_val# * 0.0 # * 0.0
+            self.portal.motor_cmd[i].kd = kd_val# * 0.0 # * 0.0
             self.portal.motor_cmd[i].tau = 0.0#ff_joint_torque #float(u_ff[i].item()) * 1.0# * 0.0
         print("For loop time: {:.4f} ms".format(
             (time.perf_counter() - st2) * 1000.0))
@@ -651,7 +653,7 @@ class BoosterRobotController(BaseController):
             print("logging time: {:.4f} ms".format(
                 (time.perf_counter() - st2) * 1000.0))
             st3 = time.perf_counter()
-            #self.ctrl_step(dof_targets, u_ff)
+            self.ctrl_step(dof_targets, u_ff)
             print("publisher time: {:.4f} ms".format(
                 (time.perf_counter() - st3) * 1000.0))
             self.portal.logger.info("Eval Time: {:.4f} ms".format(
