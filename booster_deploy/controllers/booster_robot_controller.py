@@ -247,7 +247,7 @@ class BoosterRobotPortal:
             dof_pos = np.zeros(self.robot.num_joints, dtype=np.float32)
             dof_vel = np.zeros(self.robot.num_joints, dtype=np.float32)
             fb_torque = np.zeros(self.robot.num_joints, dtype=np.float32)
-
+            print("acceleration: ", acc)
             fuse_vel = self.acc_f.update(self.local_vel, acc, ct)
 
             for i, motor in enumerate(low_state_msg.motor_state_serial):
