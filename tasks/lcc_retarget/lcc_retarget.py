@@ -191,7 +191,7 @@ class LCCRetargetPolicy(Policy):
 
         r_wb = quat_to_rotmat_wxyz(base_quat)
         grav_vec = r_wb.T @ np.array([0.0, 0.0, -9.81], dtype=np.float32)
-        
+        print("Gravity vector: ", grav_vec)
         u_ff, pd_pos = self.pin_lcc.step(
             base_lin_vel,
             base_ang_vel,
