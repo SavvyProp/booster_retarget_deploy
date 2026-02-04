@@ -247,7 +247,6 @@ class BoosterRobotPortal:
             dof_pos = np.zeros(self.robot.num_joints, dtype=np.float32)
             dof_vel = np.zeros(self.robot.num_joints, dtype=np.float32)
             fb_torque = np.zeros(self.robot.num_joints, dtype=np.float32)
-            print("acceleration: ", acc)
             fuse_vel = self.acc_f.update(self.local_vel, acc, ct)
 
             for i, motor in enumerate(low_state_msg.motor_state_serial):
@@ -261,7 +260,7 @@ class BoosterRobotPortal:
             self._state_buf[0]["root_quat_w"][:] = base_quat
             self._state_buf[0]["root_ang_vel_b"][:] = gyro
             self._state_buf[0]["root_pos_w"][:] = self.global_pos
-            self._state_buf[0]["root_lin_vel_b"][:] = fuse_vel#self.local_vel
+            self._state_buf[0]["root_lin_vel_b"][:] = self.local_vel
             self._state_buf[0]["root_lin_vel_b_raw"][:] = self.local_vel
             self._state_buf[0]["joint_pos"][:] = dof_pos
             self._state_buf[0]["joint_vel"][:] = dof_vel
@@ -592,8 +591,8 @@ class BoosterRobotController(BaseController):
             ff_joint_pos = ff_joint_torque / kp_val
             new_q = self.robot.default_joint_pos_list[i]
             self.portal.motor_cmd[i].q = fb_joint_pos + ff_joint_pos
-            self.portal.motor_cmd[i].kp = kp_val * 0.0 # * 0.0
-            self.portal.motor_cmd[i].kd = kd_val * 0.0 # * 0.0
+            self.portal.motor_cmd[i].kp = kp_val# * 0.0 # * 0.0
+            self.portal.motor_cmd[i].kd = kd_val# * 0.0 # * 0.0
             self.portal.motor_cmd[i].tau = 0.0#ff_joint_torque #float(u_ff[i].item()) * 1.0# * 0.0
         print("For loop time: {:.4f} ms".format(
             (time.perf_counter() - st2) * 1000.0))
@@ -647,7 +646,7 @@ class BoosterRobotController(BaseController):
             print("logging time: {:.4f} ms".format(
                 (time.perf_counter() - st2) * 1000.0))
             st3 = time.perf_counter()
-            #self.ctrl_step(dof_targets, u_ff)
+            self.ctrl_step(dof_targets, u_ff)
             print("publisher time: {:.4f} ms".format(
                 (time.perf_counter() - st3) * 1000.0))
             self.portal.logger.info("Eval Time: {:.4f} ms".format(
