@@ -1,0 +1,51 @@
+import numpy as np
+
+class AccelerationFusion:
+    def __init__(self, window_size=1000):
+        self.local_vel = np.zeros([window_size, 3])
+
+        self.acc_data = np.zeros([window_size, 3])
+        self.timestamps = np.zeros([window_size])
+        self.start_index = 0
+
+        # Velocity estimates: local_vel + ∫ a dt (computed over the stored window)
+        self.vel_est = np.zeros([window_size, 3])
+
+        self.weight = np.square(np.linspace(1.0, 0.1, window_size))
+        self.weight = self.weight / np.sum(self.weight)
+        self.weight = self.weight[:, None]  # Make it a column vector
+
+    def update(self, vicon_local_vel, imu_acc, timestamp):
+        # Update circular buffer and compute new velocity.
+        # Put vicon local vel into top compute smoothed vel
+        # replace vicon local vel
+        self.local_vel = np.roll(self.local_vel, 1, axis=0)
+        self.local_vel[0, :] = vicon_local_vel
+        self.acc_data = np.roll(self.acc_data, 1, axis=0)
+        self.acc_data[0, :] = imu_acc
+        self.timestamps = np.roll(self.timestamps, 1)
+        self.timestamps[0] = timestamp
+        self.start_index = min(self.start_index + 1, self.local_vel.shape[0] - 1)
+
+        # For each element from 0 to start index, compute the velocity by integrating acc
+        n = self.start_index
+        if n < 2:
+            self.vel_est[0, :] = self.local_vel[0, :]
+        else:
+            # Compute dt between samples (newest at index 0). Clamp non-positive/invalid dt.
+            t = self.timestamps[:n]
+            dt = t[:-1] - t[1:]
+            dt = np.where(np.isfinite(dt) & (dt > 0.0), dt, 0.0)
+
+            # Cumulative integral of acceleration from newest backwards: dv[i] = sum_{k< i} a[k]*dt[k]
+            a = self.acc_data[:n]
+            dv = np.zeros((n, 3), dtype=float)
+            dv[1:, :] = np.cumsum(a[:-1, :] * dt[:, None], axis=0)
+
+            # Velocity estimate for each stored sample
+            self.vel_est[:n, :] = self.local_vel[:n, :] + dv
+
+        # Weigh each velocity estimate: newer samples get higher weight
+        vel_final = np.sum(self.weight * self.vel_est, axis = 0)
+        self.local_vel[0, :] = vel_final
+        return vel_final

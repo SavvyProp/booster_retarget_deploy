@@ -27,6 +27,7 @@ from ..utils.isaaclab import math as lab_math
 from ..utils.remote_control_service import RemoteControlService
 from ..utils.math import rotmat_to_quat
 from ..utils.vicon_vel import ViconVelocityEstimator
+from ..utils.acc_fusion import AccelerationFusion
 
 logger = logging.getLogger("booster_deploy")
 logging.basicConfig(
@@ -93,6 +94,7 @@ class BoosterRobotPortal:
         rclpy.init()
         
         self.vve = ViconVelocityEstimator()
+        self.acc_f = AccelerationFusion(window_size=int(0.5 / self.cfg.booster.low_state_dt))
         self.local_vel = np.zeros([3])
         self.global_pos = np.zeros([3])
         self.global_ori = np.eye(3).flatten()
@@ -123,6 +125,7 @@ class BoosterRobotPortal:
                 ("root_ang_vel_b", float, (3,)),
                 ("root_pos_w", float, (3,)),
                 ("root_lin_vel_b", float, (3,)),
+                ("root_lin_vel_b_raw", float, (3,)),
                 ("joint_pos", float, (self.robot.num_joints,)),
                 ("joint_vel", float, (self.robot.num_joints,)),
                 ("feedback_torque", float, (self.robot.num_joints,)),
@@ -237,11 +240,15 @@ class BoosterRobotPortal:
             self.timer.tick_timer_if_sim()
 
             # collect state data
+            ct = self.timer.get_time()
             rpy = np.array(low_state_msg.imu_state.rpy, dtype=np.float32)
             gyro = np.array(low_state_msg.imu_state.gyro, dtype=np.float32)
+            acc = np.array(low_state_msg.imu_state.acc, dtype=np.float32)
             dof_pos = np.zeros(self.robot.num_joints, dtype=np.float32)
             dof_vel = np.zeros(self.robot.num_joints, dtype=np.float32)
             fb_torque = np.zeros(self.robot.num_joints, dtype=np.float32)
+
+            fuse_vel = self.acc_f.update(self.local_vel, acc, ct)
 
             for i, motor in enumerate(low_state_msg.motor_state_serial):
                 dof_pos[i] = motor.q
@@ -254,7 +261,8 @@ class BoosterRobotPortal:
             self._state_buf[0]["root_quat_w"][:] = base_quat
             self._state_buf[0]["root_ang_vel_b"][:] = gyro
             self._state_buf[0]["root_pos_w"][:] = self.global_pos
-            self._state_buf[0]["root_lin_vel_b"][:] = self.local_vel
+            self._state_buf[0]["root_lin_vel_b"][:] = fuse_vel#self.local_vel
+            self._state_buf[0]["root_lin_vel_b_raw"][:] = self.local_vel
             self._state_buf[0]["joint_pos"][:] = dof_pos
             self._state_buf[0]["joint_vel"][:] = dof_vel
             self._state_buf[0]["feedback_torque"][:] = fb_torque
@@ -494,8 +502,8 @@ class BoosterRobotController(BaseController):
     def __init__(self, cfg: ControllerCfg, portal: BoosterRobotPortal) -> None:
         super().__init__(cfg)
         self.portal = portal
-        slice_size = 5 * self.robot.num_joints + 7 + 12 + 30 + 6 + 6 + 5 + self.policy.obs_size
-        self.obs_list = np.zeros((2000, slice_size), dtype=np.float32)
+        slice_size = 5 * self.robot.num_joints + 7 + 12 + 30 + 6 + 6 + 3 + 5 + self.policy.obs_size
+        self.obs_list = np.zeros((1000, slice_size), dtype=np.float32)
 
     def update_vel_command(self):
         cmd = self.portal.synced_command.read()[0]
@@ -504,6 +512,49 @@ class BoosterRobotController(BaseController):
         self.vel_command.lin_vel_y = cmd["vy"] * self.vel_command.vy_max
         self.vel_command.ang_vel_yaw = cmd["vyaw"] * self.vel_command.vyaw_max
 
+    def save_state(self, state):
+        joint_pos = self.robot.data.joint_pos
+        joint_vel = self.robot.data.joint_vel
+        root_lin_vel_b = self.robot.data.root_lin_vel_b
+        root_ang_vel_b = self.robot.data.root_ang_vel_b
+        time_stamp = np.array([self.portal.timer.get_time()])
+        obs = self.policy.obs
+        global_pos = state["root_pos_w"]
+        global_ori = state["root_mat_w"].reshape(-1,)
+        try:
+            f = np.array(self.policy.f)
+            com_accs = np.array(self.policy.com_accs)
+            com_vel = np.array(self.policy.com_vel)
+            com_angvel = np.array(self.policy.com_angvel)
+            w = np.array(self.policy.w)
+        except:
+            f = np.zeros((30,), dtype=np.float32)
+            com_accs = np.zeros((6,), dtype=np.float32)
+            com_vel = np.zeros((3,), dtype=np.float32)
+            com_angvel = np.zeros((3,), dtype=np.float32)
+            w = np.zeros((5,), dtype=np.float32)
+        fbt = self.robot.data.feedback_torque
+        raw_linvel = state["root_lin_vel_b_raw"]
+        info_slice = np.concatenate([joint_pos,
+                                     joint_vel,
+                                    root_lin_vel_b, 
+                                    root_ang_vel_b,
+                                    time_stamp,
+                                    obs,
+                                    global_pos,
+                                    global_ori,
+                                    w,
+                                    fbt,
+                                    self.dof_targets, 
+                                    self.u_ff,
+                                    f,
+                                    com_accs,
+                                    com_vel,
+                                    com_angvel,
+                                    raw_linvel], axis = -1)
+        self.obs_list = np.roll(self.obs_list, -1, axis=0)
+        self.obs_list[-1, :] = info_slice
+
     def update_state(self) -> None:
         state = self.portal.synced_state.read()[0]
         self.robot.data.root_quat_w = state["root_quat_w"]
@@ -511,7 +562,7 @@ class BoosterRobotController(BaseController):
         self.robot.data.joint_vel = state["joint_vel"]
         self.robot.data.feedback_torque = state["feedback_torque"]
         self.robot.data.root_pos_w = state["root_pos_w"]
-        rpy_t = state["root_rpy_w"]
+        #rpy_t = state["root_rpy_w"]
         #self.robot.data.root_quat_w = lab_math.quat_from_euler_xyz(
         #    *rpy_t
         #).squeeze()
@@ -524,11 +575,7 @@ class BoosterRobotController(BaseController):
         self.robot.data.root_ang_vel_b = state["root_ang_vel_b"]
         self.robot.data.root_lin_vel_b = state["root_lin_vel_b"]
 
-        info_slice = self.robot_slice(
-            state["root_pos_w"],
-            state["root_mat_w"]
-        )
-        return info_slice
+        return state
 
     def ctrl_step(self, dof_targets, u_ff) -> None:
         dof_targets = list(map(float, dof_targets.tolist()))
@@ -557,24 +604,6 @@ class BoosterRobotController(BaseController):
         super().stop()
         self.portal.exit_event.set()
 
-    def robot_slice(self, global_pos, global_ori):
-        joint_pos = self.robot.data.joint_pos
-        joint_vel = self.robot.data.joint_vel
-        root_lin_vel_b = self.robot.data.root_lin_vel_b
-        root_ang_vel_b = self.robot.data.root_ang_vel_b
-        time_stamp = np.array([self.portal.timer.get_time()])
-        obs = self.policy.obs
-        flat_obs = np.concatenate([
-            time_stamp,
-            joint_pos,
-            joint_vel,
-            root_lin_vel_b,
-            root_ang_vel_b, 
-            global_pos,
-            global_ori.reshape(-1),
-            obs
-        ], axis = -1)
-        return flat_obs
     
     def run(self):
         self.update_state()
@@ -585,6 +614,8 @@ class BoosterRobotController(BaseController):
         self.portal.logger.info("Inference loop started")
         st0 = time.perf_counter()
 
+        last_save_time = self.portal.timer.get_time()
+
         while self.is_running and not self.portal.exit_event.is_set():
             if self.portal.timer.get_time() < next_inference_time:
                 
@@ -593,38 +624,18 @@ class BoosterRobotController(BaseController):
             next_inference_time += self.cfg.policy_dt
             print(self.cfg.policy_dt)
 
-            info_slice = self.update_state()
+            state = self.update_state()
             self.portal.metrics["policy_step"].mark()
             dof_targets, u_ff = self.policy_step()
+            self.dof_targets = dof_targets
+            self.u_ff = u_ff
             print("policy step time: {:.4f} ms".format(
                 (time.perf_counter() - st) * 1000.0))
-            st2 = time.perf_counter()
-            try:
-                f = np.array(self.policy.f)
-                com_accs = np.array(self.policy.com_accs)
-                com_vel = np.array(self.policy.com_vel)
-                com_angvel = np.array(self.policy.com_angvel)
-                w = np.array(self.policy.w)
-            except:
-                f = np.zeros((30,), dtype=np.float32)
-                com_accs = np.zeros((6,), dtype=np.float32)
-                com_vel = np.zeros((3,), dtype=np.float32)
-                com_angvel = np.zeros((3,), dtype=np.float32)
-                w = np.zeros((5,), dtype=np.float32)
-            fbt = self.robot.data.feedback_torque
+            st2 = time.perf_counter()    
 
             #info_slice = self.robot_slice(dof_targets)
-            info_slice = np.concatenate([info_slice, 
-                                         w,
-                                         fbt,
-                                         dof_targets, 
-                                         u_ff,
-                                         f,
-                                         com_accs,
-                                         com_vel,
-                                         com_angvel,], axis = -1)
-            self.obs_list = np.roll(self.obs_list, -1, axis=0)
-            self.obs_list[-1, :] = info_slice
+            
+            
             #print("Dof targets:", dof_targets.cpu().numpy())
             print("logging time: {:.4f} ms".format(
                 (time.perf_counter() - st2) * 1000.0))
@@ -638,6 +649,10 @@ class BoosterRobotController(BaseController):
                 (time.perf_counter() - st0) * 1000.0
             ))
             st0 = time.perf_counter()
+
+            if self.portal.timer.get_time() - last_save_time > 0.01:
+                self.save_state(state)
+                last_save_time = self.portal.timer.get_time()
             
         np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
         self.portal.exit_event.set()
