@@ -529,12 +529,14 @@ class BoosterRobotController(BaseController):
             com_vel = np.array(self.policy.com_vel)
             com_angvel = np.array(self.policy.com_angvel)
             w = np.array(self.policy.w)
+            policy_dt = np.array([self.policy.policy_dt])
         except:
             f = np.zeros((30,), dtype=np.float32)
             com_accs = np.zeros((6,), dtype=np.float32)
             com_vel = np.zeros((3,), dtype=np.float32)
             com_angvel = np.zeros((3,), dtype=np.float32)
             w = np.zeros((5,), dtype=np.float32)
+            policy_dt = np.array([0.0])
         fbt = self.robot.data.feedback_torque
         raw_linvel = state["root_lin_vel_b_raw"]
         motion_counter = self.policy.counter
@@ -558,7 +560,8 @@ class BoosterRobotController(BaseController):
                                     com_angvel,
                                     raw_linvel,
                                     np.array([motion_counter]),
-                                    grav_vec], axis = -1)
+                                    grav_vec,
+                                    policy_dt], axis = -1)
         self.obs_list = np.roll(self.obs_list, -1, axis=0)
         self.obs_list[-1, :] = info_slice
 
@@ -663,7 +666,8 @@ class BoosterRobotController(BaseController):
             ))
             st0 = time.perf_counter()
 
-            if self.portal.timer.get_time() - last_save_time > 0.01:
+            #if self.portal.timer.get_time() - last_save_time > 0.01:
+            if True:
                 self.save_state(state)
                 last_save_time = self.portal.timer.get_time()
             

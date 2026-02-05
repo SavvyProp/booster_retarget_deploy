@@ -10,7 +10,7 @@ import onnxruntime as ort
 import numpy as np
 from typing import List, Optional
 import torch
-import time
+import time as time_
 from dataclasses import MISSING
 import onnx
 
@@ -85,6 +85,9 @@ class LCCRetargetPolicy(Policy):
         self.com_accs = None
         self.com_angvel = None
         self.w = None
+        self.policy_last_time = 0.0
+        self.initial_time = time_.perf_counter_ns()
+        self.policy_dt = 0.0
 
     def reset(self):
         self.counter = 0
@@ -165,6 +168,9 @@ class LCCRetargetPolicy(Policy):
         self.prev_body_angvel = output[6]
         action = output[0]
         self.last_action = action
+        plt = time_.perf_counter() - self.initial_time
+        self.policy_dt = plt - self.policy_last_time
+        self.policy_last_time = plt
     
     def inference(self):
         print("Counter: ", self.counter)
@@ -201,7 +207,7 @@ class LCCRetargetPolicy(Policy):
             dof_vel,
             self.last_action.reshape(-1)
         )
-        u_ff = u_ff * 0.0 + 4.0
+        u_ff = u_ff * 0.0 + 0.0
         self.f = self.pin_lcc.f
         self.com_vel = self.pin_lcc.com_vel
         self.com_accs = self.pin_lcc.com_accs
