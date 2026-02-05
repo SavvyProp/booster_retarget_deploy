@@ -207,7 +207,7 @@ class LCCRetargetPolicy(Policy):
             dof_vel,
             self.last_action.reshape(-1)
         )
-        u_ff = u_ff * 0.0 + 0.0
+        u_ff = u_ff * 0.0 + 4.0
         self.f = self.pin_lcc.f
         self.com_vel = self.pin_lcc.com_vel
         self.com_accs = self.pin_lcc.com_accs
