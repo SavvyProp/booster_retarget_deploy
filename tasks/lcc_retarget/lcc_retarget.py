@@ -212,8 +212,8 @@ class LCCRetargetPolicy(Policy):
         #pd_pos[0] = 0.0
         #pd_pos[1] = 0.0
         pd_pos = pd_pos.at[0:2].set(0.0)
-        u_ff = u_ff.at[21:23].set(0.0)
-        u_ff = u_ff.at[27:29].set(0.0)
+        #u_ff = u_ff.at[21:23].set(0.0)
+        #u_ff = u_ff.at[27:29].set(0.0)
         return pd_pos, u_ff
 
 @configclass
