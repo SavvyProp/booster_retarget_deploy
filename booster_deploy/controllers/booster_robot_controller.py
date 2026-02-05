@@ -519,7 +519,7 @@ class BoosterRobotController(BaseController):
         joint_vel = self.robot.data.joint_vel
         root_lin_vel_b = self.robot.data.root_lin_vel_b
         root_ang_vel_b = self.robot.data.root_ang_vel_b
-        time_stamp = np.array([self.portal.timer.get_time()])
+        time_stamp = np.array([time.perf_counter()])
         obs = self.policy.obs
         global_pos = state["root_pos_w"]
         global_ori = state["root_mat_w"].reshape(-1,)
@@ -601,8 +601,8 @@ class BoosterRobotController(BaseController):
             ff_joint_pos = ff_joint_torque / kp_val
             new_q = self.robot.default_joint_pos_list[i]
             self.portal.motor_cmd[i].q = fb_joint_pos + ff_joint_pos
-            self.portal.motor_cmd[i].kp = kp_val# * 0.0 # * 0.0
-            self.portal.motor_cmd[i].kd = kd_val# * 0.0 # * 0.0
+            self.portal.motor_cmd[i].kp = 0.0#kp_val# * 0.0 # * 0.0
+            self.portal.motor_cmd[i].kd = 0.0#kd_val# * 0.0 # * 0.0
             self.portal.motor_cmd[i].tau = 0.0#ff_joint_torque #float(u_ff[i].item()) * 1.0# * 0.0
         print("For loop time: {:.4f} ms".format(
             (time.perf_counter() - st2) * 1000.0))
@@ -622,20 +622,21 @@ class BoosterRobotController(BaseController):
         if self.vel_command is not None:
             self.update_vel_command()
         self.start()
-        next_inference_time = self.portal.timer.get_time()
+        next_inference_time = time.perf_counter()
         self.portal.logger.info("Inference loop started")
         st0 = time.perf_counter()
 
-        last_save_time = self.portal.timer.get_time()
+        last_save_time = time.perf_counter()#self.portal.timer.get_time()
 
         # Warm start policy step
         dof_targets, u_ff = self.policy_step()
         self.policy.reset()
 
         while self.is_running and not self.portal.exit_event.is_set():
-            if self.portal.timer.get_time() < next_inference_time:
+            if time.perf_counter() < next_inference_time:
                 time.sleep(0.0001)
                 continue
+            print(next_inference_time)
             st = time.perf_counter()
             next_inference_time += self.cfg.policy_dt
             print(self.cfg.policy_dt)
@@ -656,7 +657,7 @@ class BoosterRobotController(BaseController):
             print("logging time: {:.4f} ms".format(
                 (time.perf_counter() - st2) * 1000.0))
             st3 = time.perf_counter()
-            self.ctrl_step(dof_targets, u_ff)
+            #self.ctrl_step(dof_targets, u_ff)
             print("publisher time: {:.4f} ms".format(
                 (time.perf_counter() - st3) * 1000.0))
             self.portal.logger.info("Eval Time: {:.4f} ms".format(
@@ -669,7 +670,7 @@ class BoosterRobotController(BaseController):
             #if self.portal.timer.get_time() - last_save_time > 0.01:
             if True:
                 self.save_state(state)
-                last_save_time = self.portal.timer.get_time()
+                last_save_time = time.perf_counter()
             
         np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
         self.portal.exit_event.set()
