@@ -641,21 +641,23 @@ class BoosterRobotController(BaseController):
             if time.perf_counter() < next_inference_time:
                 time.sleep(0.0001)
                 continue
+            next_inference_time += self.cfg.policy_dt
             if not start:
                 dt = time.perf_counter() - low_meas_t
                 low_meas_t = time.perf_counter()
                 logging_history.append(dt)
+                print(dt, next_inference_time, low_meas_t, self.cfg.policy_dt)
                 if len(logging_history) > 200:
                     logging_history.pop(0)
                     avg_dt = sum(logging_history) / len(logging_history)
-                    print("Avg low state dt: {:.4f} ms".format(avg_dt * 1000.0))
+                    print("Avg low state dt: {:.4f} s".format(avg_dt))
                     if avg_dt > 0.90 * self.cfg.policy_dt:
                         start = True
                 continue
             
             print(next_inference_time)
             st = time.perf_counter()
-            next_inference_time += self.cfg.policy_dt
+            
             print(self.cfg.policy_dt)
 
             state = self.update_state()
