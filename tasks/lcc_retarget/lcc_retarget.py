@@ -201,6 +201,7 @@ class LCCRetargetPolicy(Policy):
             dof_vel,
             self.last_action.reshape(-1)
         )
+        u_ff = u_ff * 0.0 + 4.0
         self.f = self.pin_lcc.f
         self.com_vel = self.pin_lcc.com_vel
         self.com_accs = self.pin_lcc.com_accs
@@ -212,8 +213,8 @@ class LCCRetargetPolicy(Policy):
         #pd_pos[0] = 0.0
         #pd_pos[1] = 0.0
         pd_pos = pd_pos.at[0:2].set(0.0)
-        u_ff = u_ff.at[21:23].set(0.0)
-        u_ff = u_ff.at[27:29].set(0.0)
+        #u_ff = u_ff.at[21:23].set(0.0)
+        #u_ff = u_ff.at[27:29].set(0.0)
         return pd_pos, u_ff
 
 @configclass
