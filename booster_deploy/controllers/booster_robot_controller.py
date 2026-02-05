@@ -505,7 +505,7 @@ class BoosterRobotController(BaseController):
         super().__init__(cfg)
         self.portal = portal
         slice_size = 5 * self.robot.num_joints + 7 + 12 + 30 + 6 + 6 + 3 + 5 + 2 + self.policy.obs_size + 3
-        self.obs_list = np.zeros((1000, slice_size), dtype=np.float32)
+        self.obs_list = np.zeros((10000, slice_size), dtype=np.float32)
 
     def update_vel_command(self):
         cmd = self.portal.synced_command.read()[0]
