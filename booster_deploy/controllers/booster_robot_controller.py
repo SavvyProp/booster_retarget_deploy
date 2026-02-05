@@ -635,7 +635,7 @@ class BoosterRobotController(BaseController):
         start = False
         logging_history = []
 
-        low_meas_t = time.perf_count()
+        low_meas_t = time.perf_counter()
 
         while self.is_running and not self.portal.exit_event.is_set():
             if time.perf_counter() < next_inference_time:
