@@ -109,6 +109,7 @@ class AccelerationFusion: # Jank acceleration + Vicon velocity fusion
 
         g_body = g_body * 9.81 / np.linalg.norm(g_body)
         alpha = 0.5
+        print(g_body_from_rpy, grav_vec_vicon, g_body_from_acc_dir)
         self.last_grav_vec = g_body * alpha + (1.0 - alpha) * self.last_grav_vec
 
         return self.last_grav_vec

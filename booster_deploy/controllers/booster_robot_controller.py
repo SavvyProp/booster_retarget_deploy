@@ -654,10 +654,10 @@ class BoosterRobotController(BaseController):
                     if avg_dt > 0.90 * self.cfg.policy_dt:
                         start = 1
                 continue
-            if start > 1 and start < 20:
-                self.policy.policy_last_time = ts
-                start += 1
-                continue
+            #if start > 1 and start < 20:
+            #   self.policy.policy_last_time = ts
+            #    start += 1
+            #    continue
 
             st = time.perf_counter()
             
