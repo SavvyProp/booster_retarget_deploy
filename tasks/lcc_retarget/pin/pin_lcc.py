@@ -113,7 +113,8 @@ class PinLCC:
         self.com_accs = com_accs
         self.com_angvel = com_angvel
         self.w = w
-        
+        #u_ff = u_ff * 0.00 + 4.0
+        #print(f)
         return u_ff, des_pos
         
 

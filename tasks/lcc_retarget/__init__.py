@@ -47,6 +47,7 @@ class T1LCC_standing(T1LCCRetargetControllerCfg):
         super().__post_init__()
         self.policy.checkpoint_path = "tasks/lcc_retarget/models/standing/policy.onnx"
 
+
 register_task(
     "t1_lcc_retarget_CMU_41_02", T1LCC_CMU_41_02())
 
@@ -63,4 +64,5 @@ register_task(
     "t1_lcc_retarget_accad_W2K", T1LCC_accad_W2K())
 
 register_task(
-    "t1_lcc_retarget_standing", T1LCC_standing())
+    "t1_lcc_retarget_standing", T1LCC_standing()
+)

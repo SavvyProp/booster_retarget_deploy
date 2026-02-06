@@ -216,6 +216,19 @@ def ft_ref(eefpos, com_pos,
     sol = schur_solve(qp_q, qp_c, centroid_lhs, centroid_rhs)
 
     f = sol
+    #f = jnp.array(
+    #    [ 3.6033440e+01,  1.9727881e+02,  1.9957552e+01,  1.9628253e+00,
+ #-7.1052070e+00,  5.9950781e+00, -3.3069395e-03, -4.1283653e-03,
+ #-5.8412220e-04, -4.9243364e-03, -1.6120942e-03, -5.0989084e-04,
+ #-1.0998411e-02,  7.9323128e-03, -6.5745128e-04, -2.1900069e-03,
+ # 5.4701101e-03, -1.8007433e-03,  1.6207802e-01, -1.3599781e+01,
+ # 1.5003424e+02,  7.9523454e+00,  1.5955346e+01, -2.5248315e+00,
+ #-8.6390524e+00, -1.2453608e+01,  1.9170102e+02,  9.2213621e+00,
+ #-1.7784811e+01, -3.0053470e+00]
+ #   )
+    #f = jnp.zeros([30])
+    #f = f.at[20].set(170.0)
+    #f = f.at[26].set(170.0)
     tau = -jacs[:, 6:].T @ f
     debug_dict = {}
 
@@ -276,10 +289,13 @@ def ctrl2components(act, ids):
 
 def highlvlPD(com_vel, com_angvel,
               des_com_vel, des_angvel):
-    c_lin_p_gain = 0.0
+    c_lin_p_gain = 15.0
     com_acc = c_lin_p_gain * (des_com_vel - com_vel)
-    com_acc = jnp.clip(com_acc, -3.0, 3.0)
-    c_ang_p_gain = 0.0
+    #com_acc = jnp.clip(com_acc, -3.0, 3.0)
+    com_acc_mag = jnp.linalg.norm(com_acc)
+    com_acc_mag_ = jnp.clip(com_acc_mag, 0.0, 5.0)
+    com_acc = com_acc * (com_acc_mag_ / (1e-6 + com_acc_mag))
+    c_ang_p_gain = 10.0
     com_angacc = c_ang_p_gain * (des_angvel - com_angvel)
     com_accs = jnp.concatenate([com_acc, com_angacc], axis = 0)
     return com_accs
