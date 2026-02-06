@@ -10,6 +10,16 @@ import mujoco.viewer
 from booster_assets import BOOSTER_ASSETS_DIR
 from .base_controller import BaseController, ControllerCfg, VelocityCommand
 from ..utils.math import rotmat_to_quat, world_to_base_vector
+from ..utils.acc_fusion import AccelerationFusion
+
+def quat_to_rotmat_wxyz(q):
+    """q = [w, x, y, z]. Returns R such that v_world = R @ v_body."""
+    w, x, y, z = q
+    return np.array([
+        [1 - 2*(y*y + z*z),     2*(x*y - z*w),     2*(x*z + y*w)],
+        [    2*(x*y + z*w), 1 - 2*(x*x + z*z),     2*(y*z - x*w)],
+        [    2*(x*z - y*w),     2*(y*z + x*w), 1 - 2*(x*x + y*y)],
+    ], dtype=np.float64)
 
 class MujocoController(BaseController):
     def __init__(self, cfg: ControllerCfg):
@@ -49,6 +59,7 @@ class MujocoController(BaseController):
 
         # Reference qpos can be set explicitly by the policy.
         self._reference_qpos: np.ndarray | None = None
+        self.acc_f = AccelerationFusion()
 
     def start(self):
         # Clear reference; policy.reset() may set a fresh one.
@@ -156,6 +167,8 @@ class MujocoController(BaseController):
             base_ang_vel_w,
             base_quat,
             ordering="wxyz",)
+        
+        grav_vec = quat_to_rotmat_wxyz(base_quat).T @ np.array([0.0, 0.0, -9.81], dtype=np.float32)
 
         self.robot.data.joint_pos = dof_pos
         self.robot.data.joint_vel = dof_vel
@@ -164,6 +177,7 @@ class MujocoController(BaseController):
         self.robot.data.root_quat_w = base_quat
         self.robot.data.root_lin_vel_b = base_lin_vel_b
         self.robot.data.root_ang_vel_b = base_ang_vel_b
+        self.robot.data.grav_vec_b = grav_vec
 
     def log_states(self, dof_targets: np.ndarray) -> None:
         if self.cfg.mujoco.log_states is not None:

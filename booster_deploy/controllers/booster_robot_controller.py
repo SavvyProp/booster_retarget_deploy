@@ -248,8 +248,8 @@ class BoosterRobotPortal:
             dof_pos = np.zeros(self.robot.num_joints, dtype=np.float32)
             dof_vel = np.zeros(self.robot.num_joints, dtype=np.float32)
             fb_torque = np.zeros(self.robot.num_joints, dtype=np.float32)
-            #fuse_vel = self.acc_f.update(self.local_vel, acc, ct)
-            grav_vec = self.acc_f.compute_grav_vec(acc, rpy)
+            fuse_vel = self.acc_f.update(self.local_vel, acc, ct)
+            grav_vec = self.acc_f.compute_grav_vec(acc, rpy, self.global_ori)
 
             for i, motor in enumerate(low_state_msg.motor_state_serial):
                 dof_pos[i] = motor.q
@@ -263,7 +263,7 @@ class BoosterRobotPortal:
             self._state_buf[0]["root_ang_vel_b"][:] = gyro
             self._state_buf[0]["root_pos_w"][:] = self.global_pos
             self._state_buf[0]["root_lin_vel_b"][:] = self.local_vel
-            self._state_buf[0]["root_lin_vel_b_raw"][:] = self.local_vel
+            self._state_buf[0]["root_lin_vel_b_raw"][:] = fuse_vel
             self._state_buf[0]["joint_pos"][:] = dof_pos
             self._state_buf[0]["joint_vel"][:] = dof_vel
             self._state_buf[0]["feedback_torque"][:] = fb_torque

@@ -13,6 +13,7 @@ class AccelerationFusion: # Jank acceleration + Vicon velocity fusion
 
         self.weight = np.square(np.linspace(1.0, 0.1, window_size))
         self.weight = self.weight[:, None]  # Make it a column vector
+        self.last_grav_vec = np.array([0.0, 0.0, -9.81], dtype=float)
 
     def update(self, vicon_local_vel, imu_acc, timestamp):
         # Update circular buffer and compute new velocity.
@@ -21,7 +22,7 @@ class AccelerationFusion: # Jank acceleration + Vicon velocity fusion
         self.local_vel = np.roll(self.local_vel, 1, axis=0)
         self.local_vel[0, :] = vicon_local_vel
         self.acc_data = np.roll(self.acc_data, 1, axis=0)
-        self.acc_data[0, :] = imu_acc
+        self.acc_data[0, :] = imu_acc - self.last_grav_vec
         self.timestamps = np.roll(self.timestamps, 1)
         self.timestamps[0] = timestamp
         self.start_index = min(self.start_index + 1, self.local_vel.shape[0])
@@ -49,7 +50,7 @@ class AccelerationFusion: # Jank acceleration + Vicon velocity fusion
         self.local_vel[0, :] = vel_final
         return vel_final
     
-    def compute_grav_vec(self, acc, rpy, g=9.80665, accel_blend=0.2):
+    def compute_grav_vec(self, acc, rpy, rotmat, g=9.80665):
         """Estimate gravity vector in the sensor/body frame.
 
         Uses the provided roll/pitch/yaw to rotate the world gravity vector into the
@@ -67,6 +68,8 @@ class AccelerationFusion: # Jank acceleration + Vicon velocity fusion
         Returns:
             3-vector gravity estimate in body frame (m/s^2).
         """
+        rotmat = np.asarray(rotmat, dtype=float).reshape(3,3)
+        grav_vec_vicon = rotmat.T @ np.array([0.0, 0.0, -9.81], dtype=np.float32)
         acc = np.asarray(acc, dtype=float).reshape(3,)
         rpy = np.asarray(rpy, dtype=float).reshape(3,)
 
@@ -99,14 +102,13 @@ class AccelerationFusion: # Jank acceleration + Vicon velocity fusion
         else:
             g_body_from_acc_dir = g_body_from_rpy
 
-        w = float(np.clip(accel_blend, 0.0, 1.0))
-        g_body = (1.0 - w) * g_body_from_rpy + w * g_body_from_acc_dir
+        rpy_weight = 0.5
+        vicon_weight = 0.4
+        grav_vec_weight = 0.1
+        g_body = rpy_weight * g_body_from_rpy + vicon_weight * grav_vec_vicon + grav_vec_weight * g_body_from_acc_dir
 
-        # Ensure magnitude ~= g
-        n = float(np.linalg.norm(g_body))
-        if np.isfinite(n) and n > 1e-6:
-            g_body = g * (g_body / n)
-        else:
-            g_body = g_body_from_rpy
+        g_body = g_body * 9.81 / np.linalg.norm(g_body)
+        alpha = 0.5
+        self.last_grav_vec = g_body * alpha + (1.0 - alpha) * self.last_grav_vec
 
-        return g_body
+        return self.last_grav_vec
