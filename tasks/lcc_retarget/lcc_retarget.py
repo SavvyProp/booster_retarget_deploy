@@ -168,8 +168,9 @@ class LCCRetargetPolicy(Policy):
         action = output[0]
         self.last_action = action
         #plt = time_.perf_counter() - self.initial_time
-        self.policy_dt = time_.perf_counter() - self.policy_last_time
-        self.policy_last_time = time_.perf_counter()
+        tt = time_.perf_counter()
+        self.policy_dt = tt - self.policy_last_time
+        self.policy_last_time = tt
     
     def inference(self):
         print("Counter: ", self.counter)

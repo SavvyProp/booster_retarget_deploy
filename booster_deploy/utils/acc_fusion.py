@@ -111,4 +111,4 @@ class AccelerationFusion: # Jank acceleration + Vicon velocity fusion
         alpha = 0.5
         self.last_grav_vec = g_body * alpha + (1.0 - alpha) * self.last_grav_vec
 
-        return self.last_grav_vec
+        return g_body#self.last_grav_vec

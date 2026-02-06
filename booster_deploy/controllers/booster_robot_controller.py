@@ -514,12 +514,12 @@ class BoosterRobotController(BaseController):
         self.vel_command.lin_vel_y = cmd["vy"] * self.vel_command.vy_max
         self.vel_command.ang_vel_yaw = cmd["vyaw"] * self.vel_command.vyaw_max
 
-    def save_state(self, state):
+    def save_state(self, state, ts):
         joint_pos = self.robot.data.joint_pos
         joint_vel = self.robot.data.joint_vel
         root_lin_vel_b = self.robot.data.root_lin_vel_b
         root_ang_vel_b = self.robot.data.root_ang_vel_b
-        time_stamp = np.array([time.perf_counter()])
+        time_stamp = np.array([ts])
         obs = self.policy.obs
         global_pos = state["root_pos_w"]
         global_ori = state["root_mat_w"].reshape(-1,)
@@ -637,13 +637,14 @@ class BoosterRobotController(BaseController):
         low_meas_t = time.perf_counter()
 
         while self.is_running and not self.portal.exit_event.is_set():
-            if time.perf_counter() < next_inference_time:
+            ts = time.perf_counter()
+            if ts < next_inference_time:
                 time.sleep(0.0001)
                 continue
             next_inference_time += self.cfg.policy_dt
             if start == 0:
-                dt = time.perf_counter() - low_meas_t
-                low_meas_t = time.perf_counter()
+                dt = ts - low_meas_t
+                low_meas_t = ts
                 logging_history.append(dt)
                 print(dt, next_inference_time, low_meas_t, self.cfg.policy_dt)
                 if len(logging_history) > 200:
@@ -654,7 +655,7 @@ class BoosterRobotController(BaseController):
                         start = 1
                 continue
             if start > 1 and start < 20:
-                self.policy.policy_last_time = time.perf_counter()
+                self.policy.policy_last_time = ts
                 start += 1
                 continue
 
@@ -689,8 +690,7 @@ class BoosterRobotController(BaseController):
 
             #if self.portal.timer.get_time() - last_save_time > 0.01:
             if True:
-                self.save_state(state)
-                last_save_time = time.perf_counter()
+                self.save_state(state, ts)
             
         np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
         self.portal.exit_event.set()
