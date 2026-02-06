@@ -102,8 +102,8 @@ class AccelerationFusion: # Jank acceleration + Vicon velocity fusion
         else:
             g_body_from_acc_dir = g_body_from_rpy
 
-        rpy_weight = 0.5
-        vicon_weight = 0.4
+        rpy_weight = 0.9
+        vicon_weight = 0.0
         grav_vec_weight = 0.1
         g_body = rpy_weight * g_body_from_rpy + vicon_weight * grav_vec_vicon + grav_vec_weight * g_body_from_acc_dir
 
@@ -111,4 +111,4 @@ class AccelerationFusion: # Jank acceleration + Vicon velocity fusion
         alpha = 0.5
         self.last_grav_vec = g_body * alpha + (1.0 - alpha) * self.last_grav_vec
 
-        return g_body#self.last_grav_vec
+        return self.last_grav_vec

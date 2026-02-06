@@ -622,7 +622,7 @@ class BoosterRobotController(BaseController):
         if self.vel_command is not None:
             self.update_vel_command()
         self.start()
-        next_inference_time = time.perf_counter()
+        
         self.portal.logger.info("Inference loop started")
         st0 = time.perf_counter()
 
@@ -634,7 +634,7 @@ class BoosterRobotController(BaseController):
         start = 0
         logging_history = []
 
-        low_meas_t = time.perf_counter()
+        next_inference_time = time.perf_counter()
 
         while self.is_running and not self.portal.exit_event.is_set():
             ts = time.perf_counter()
