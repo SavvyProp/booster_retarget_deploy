@@ -626,13 +626,12 @@ class BoosterRobotController(BaseController):
         self.portal.logger.info("Inference loop started")
         st0 = time.perf_counter()
 
-        last_save_time = time.perf_counter()#self.portal.timer.get_time()
-
+        
         # Warm start policy step
         dof_targets, u_ff = self.policy_step()
         self.policy.reset()
         
-        start = False
+        start = 0
         logging_history = []
 
         low_meas_t = time.perf_counter()
@@ -642,7 +641,7 @@ class BoosterRobotController(BaseController):
                 time.sleep(0.0001)
                 continue
             next_inference_time += self.cfg.policy_dt
-            if not start:
+            if start == 0:
                 dt = time.perf_counter() - low_meas_t
                 low_meas_t = time.perf_counter()
                 logging_history.append(dt)
@@ -652,9 +651,13 @@ class BoosterRobotController(BaseController):
                     avg_dt = sum(logging_history) / len(logging_history)
                     print("Avg low state dt: {:.4f} s".format(avg_dt))
                     if avg_dt > 0.90 * self.cfg.policy_dt:
-                        start = True
+                        start = 1
                 continue
-            
+            if start > 1 and start < 20:
+                self.policy.policy_last_time = time.perf_counter()
+                start += 1
+                continue
+
             st = time.perf_counter()
             
 

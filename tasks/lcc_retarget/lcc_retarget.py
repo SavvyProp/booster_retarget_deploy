@@ -85,8 +85,7 @@ class LCCRetargetPolicy(Policy):
         self.com_accs = None
         self.com_angvel = None
         self.w = None
-        self.policy_last_time = 0.0
-        self.initial_time = time_.perf_counter_ns()
+        self.policy_last_time = time_.perf_counter()
         self.policy_dt = 0.0
 
     def reset(self):
@@ -168,9 +167,9 @@ class LCCRetargetPolicy(Policy):
         self.prev_body_angvel = output[6]
         action = output[0]
         self.last_action = action
-        plt = time_.perf_counter() - self.initial_time
-        self.policy_dt = plt - self.policy_last_time
-        self.policy_last_time = plt
+        #plt = time_.perf_counter() - self.initial_time
+        self.policy_dt = time.perf_counter() - self.policy_last_time
+        self.policy_last_time = time.perf_counter()
     
     def inference(self):
         print("Counter: ", self.counter)
