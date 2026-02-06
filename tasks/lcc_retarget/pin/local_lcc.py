@@ -229,8 +229,8 @@ def ft_ref(eefpos, com_pos,
     f_over = jnp.zeros([30])
     f_over = f.at[20].set(170.0)
     f_over = f.at[26].set(170.0)
-    #tau = -jacs[:, 6:].T @ f
-    tau = -jacs[:, 6:].T @ f_over
+    tau = -jacs[:, 6:].T @ f
+    #tau = -jacs[:, 6:].T @ f_over
     debug_dict = {}
 
     # Test the final qp weights
@@ -290,7 +290,7 @@ def ctrl2components(act, ids):
 
 def highlvlPD(com_vel, com_angvel,
               des_com_vel, des_angvel):
-    c_lin_p_gain = 15.0
+    c_lin_p_gain = 0.0
     com_acc = c_lin_p_gain * (des_com_vel - com_vel)
     #com_acc = jnp.clip(com_acc, -3.0, 3.0)
     com_acc_mag = jnp.linalg.norm(com_acc)
