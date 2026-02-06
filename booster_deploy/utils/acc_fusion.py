@@ -102,9 +102,9 @@ class AccelerationFusion: # Jank acceleration + Vicon velocity fusion
         else:
             g_body_from_acc_dir = g_body_from_rpy
 
-        rpy_weight = 0.9
-        vicon_weight = 0.0
-        grav_vec_weight = 0.1
+        rpy_weight = 0.0
+        vicon_weight = 0.8
+        grav_vec_weight = 0.2
         g_body = rpy_weight * g_body_from_rpy + vicon_weight * grav_vec_vicon + grav_vec_weight * g_body_from_acc_dir
 
         g_body = g_body * 9.81 / np.linalg.norm(g_body)
