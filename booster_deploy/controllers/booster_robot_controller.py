@@ -504,8 +504,8 @@ class BoosterRobotController(BaseController):
     def __init__(self, cfg: ControllerCfg, portal: BoosterRobotPortal) -> None:
         super().__init__(cfg)
         self.portal = portal
-        slice_size = 5 * self.robot.num_joints + 7 + 12 + 30 + 6 + 6 + 3 + 5 + 1 + self.policy.obs_size + 3
-        self.obs_list = np.zeros((1000, slice_size), dtype=np.float32)
+        slice_size = 5 * self.robot.num_joints + 7 + 12 + 30 + 6 + 6 + 3 + 5 + 2 + self.policy.obs_size + 3
+        self.obs_list = np.zeros((10000, slice_size), dtype=np.float32)
 
     def update_vel_command(self):
         cmd = self.portal.synced_command.read()[0]
@@ -519,7 +519,7 @@ class BoosterRobotController(BaseController):
         joint_vel = self.robot.data.joint_vel
         root_lin_vel_b = self.robot.data.root_lin_vel_b
         root_ang_vel_b = self.robot.data.root_ang_vel_b
-        time_stamp = np.array([self.portal.timer.get_time()])
+        time_stamp = np.array([time.perf_counter()])
         obs = self.policy.obs
         global_pos = state["root_pos_w"]
         global_ori = state["root_mat_w"].reshape(-1,)
@@ -529,12 +529,14 @@ class BoosterRobotController(BaseController):
             com_vel = np.array(self.policy.com_vel)
             com_angvel = np.array(self.policy.com_angvel)
             w = np.array(self.policy.w)
+            policy_dt = np.array([self.policy.policy_dt])
         except:
             f = np.zeros((30,), dtype=np.float32)
             com_accs = np.zeros((6,), dtype=np.float32)
             com_vel = np.zeros((3,), dtype=np.float32)
             com_angvel = np.zeros((3,), dtype=np.float32)
             w = np.zeros((5,), dtype=np.float32)
+            policy_dt = np.array([0.0])
         fbt = self.robot.data.feedback_torque
         raw_linvel = state["root_lin_vel_b_raw"]
         motion_counter = self.policy.counter
@@ -558,7 +560,8 @@ class BoosterRobotController(BaseController):
                                     com_angvel,
                                     raw_linvel,
                                     np.array([motion_counter]),
-                                    grav_vec], axis = -1)
+                                    grav_vec,
+                                    policy_dt], axis = -1)
         self.obs_list = np.roll(self.obs_list, -1, axis=0)
         self.obs_list[-1, :] = info_slice
 
@@ -619,23 +622,44 @@ class BoosterRobotController(BaseController):
         if self.vel_command is not None:
             self.update_vel_command()
         self.start()
-        next_inference_time = self.portal.timer.get_time()
+        next_inference_time = time.perf_counter()
         self.portal.logger.info("Inference loop started")
         st0 = time.perf_counter()
 
-        last_save_time = self.portal.timer.get_time()
-
+        
         # Warm start policy step
         dof_targets, u_ff = self.policy_step()
         self.policy.reset()
+        
+        start = 0
+        logging_history = []
+
+        low_meas_t = time.perf_counter()
 
         while self.is_running and not self.portal.exit_event.is_set():
-            if self.portal.timer.get_time() < next_inference_time:
+            if time.perf_counter() < next_inference_time:
                 time.sleep(0.0001)
                 continue
-            st = time.perf_counter()
             next_inference_time += self.cfg.policy_dt
-            print(self.cfg.policy_dt)
+            if start == 0:
+                dt = time.perf_counter() - low_meas_t
+                low_meas_t = time.perf_counter()
+                logging_history.append(dt)
+                print(dt, next_inference_time, low_meas_t, self.cfg.policy_dt)
+                if len(logging_history) > 200:
+                    logging_history.pop(0)
+                    avg_dt = sum(logging_history) / len(logging_history)
+                    print("Avg low state dt: {:.4f} s".format(avg_dt))
+                    if avg_dt > 0.90 * self.cfg.policy_dt:
+                        start = 1
+                continue
+            if start > 1 and start < 20:
+                self.policy.policy_last_time = time.perf_counter()
+                start += 1
+                continue
+
+            st = time.perf_counter()
+            
 
             state = self.update_state()
             self.portal.metrics["policy_step"].mark()
@@ -663,9 +687,10 @@ class BoosterRobotController(BaseController):
             ))
             st0 = time.perf_counter()
 
-            if self.portal.timer.get_time() - last_save_time > 0.01:
+            #if self.portal.timer.get_time() - last_save_time > 0.01:
+            if True:
                 self.save_state(state)
-                last_save_time = self.portal.timer.get_time()
+                last_save_time = time.perf_counter()
             
         np.savetxt("eval_data/booster_obs_log.csv", self.obs_list, delimiter=",")
         self.portal.exit_event.set()
