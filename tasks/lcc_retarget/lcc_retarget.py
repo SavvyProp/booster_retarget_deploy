@@ -169,6 +169,7 @@ class LCCRetargetPolicy(Policy):
         self.last_action = action
         #plt = time_.perf_counter() - self.initial_time
         tt = time_.perf_counter()
+        print("Policy Inference Time: {:.6f} ms".format((tt) * 1000.0))
         self.policy_dt = tt - self.policy_last_time
         self.policy_last_time = tt
     

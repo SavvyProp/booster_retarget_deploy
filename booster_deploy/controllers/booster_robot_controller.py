@@ -653,40 +653,21 @@ class BoosterRobotController(BaseController):
                     print("Avg low state dt: {:.4f} s".format(avg_dt))
                     if avg_dt > 0.90 * self.cfg.policy_dt:
                         start = 1
+                        self.policy.policy_last_time = ts
                 continue
             #if start > 1 and start < 20:
             #   self.policy.policy_last_time = ts
             #    start += 1
             #    continue
-
-            st = time.perf_counter()
-            
-
+            print("Next Inference Time: {:.6f}".format(next_inference_time))
             state = self.update_state()
             self.portal.metrics["policy_step"].mark()
             dof_targets, u_ff = self.policy_step()
             self.dof_targets = dof_targets
             self.u_ff = u_ff
-            print("policy step time: {:.4f} ms".format(
-                (time.perf_counter() - st) * 1000.0))
-            st2 = time.perf_counter()    
-
-            #info_slice = self.robot_slice(dof_targets)
-            
             
             #print("Dof targets:", dof_targets.cpu().numpy())
-            print("logging time: {:.4f} ms".format(
-                (time.perf_counter() - st2) * 1000.0))
-            st3 = time.perf_counter()
             self.ctrl_step(dof_targets, u_ff)
-            print("publisher time: {:.4f} ms".format(
-                (time.perf_counter() - st3) * 1000.0))
-            self.portal.logger.info("Eval Time: {:.4f} ms".format(
-                (time.perf_counter() - st) * 1000.0))
-            self.portal.logger.info("Wait Time: {:.4f} ms".format(
-                (time.perf_counter() - st0) * 1000.0
-            ))
-            st0 = time.perf_counter()
 
             #if self.portal.timer.get_time() - last_save_time > 0.01:
             if True:
