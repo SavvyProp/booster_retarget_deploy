@@ -47,6 +47,13 @@ class T1LCC_standing(T1LCCRetargetControllerCfg):
         super().__post_init__()
         self.policy.checkpoint_path = "tasks/lcc_retarget/models/standing/policy.onnx"
 
+@configclass
+class T1LCC_HDM_WT(T1LCCRetargetControllerCfg):
+    '''Sidestepping motion for T1 robot.'''
+    def __post_init__(self):
+        super().__post_init__()
+        self.policy.checkpoint_path = "tasks/lcc_retarget/models/HDM_WT/policy.onnx"
+
 
 register_task(
     "t1_lcc_retarget_CMU_41_02", T1LCC_CMU_41_02())
@@ -65,4 +72,8 @@ register_task(
 
 register_task(
     "t1_lcc_retarget_standing", T1LCC_standing()
+)
+
+register_task(
+    "t1_lcc_retarget_HDM_WT", T1LCC_HDM_WT()
 )
