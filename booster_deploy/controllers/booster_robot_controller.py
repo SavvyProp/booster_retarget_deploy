@@ -601,8 +601,8 @@ class BoosterRobotController(BaseController):
             ff_joint_pos = ff_joint_torque / kp_val
             new_q = self.robot.default_joint_pos_list[i]
             self.portal.motor_cmd[i].q = fb_joint_pos + ff_joint_pos
-            self.portal.motor_cmd[i].kp = kp_val# * 0.0 # * 0.0
-            self.portal.motor_cmd[i].kd = kd_val# * 0.0 # * 0.0
+            self.portal.motor_cmd[i].kp = kp_val * 0.0 # * 0.0
+            self.portal.motor_cmd[i].kd = kd_val * 0.0 # * 0.0
             self.portal.motor_cmd[i].tau = 0.0#ff_joint_torque #float(u_ff[i].item()) * 1.0# * 0.0
         print("For loop time: {:.4f} ms".format(
             (time.perf_counter() - st2) * 1000.0))
