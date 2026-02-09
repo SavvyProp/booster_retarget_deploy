@@ -95,6 +95,12 @@ class LCCRetargetPolicy(Policy):
         self.alpha[27] = ankle_filt
         self.alpha[28] = ankle_filt
 
+        self.vel_limit = np.ones((29,), dtype=np.float32) * 10.0
+        self.vel_limit[21] = 5.0
+        self.vel_limit[22] = 5.0
+        self.vel_limit[27] = 5.0
+        self.vel_limit[28] = 5.0
+
     def reset(self):
         self.counter = 0
         self.last_action = np.zeros_like(self.last_action)
@@ -122,6 +128,11 @@ class LCCRetargetPolicy(Policy):
                 #self.controller.stop()
 
         #default_joint_pos_sim = self.robot.default_joint_pos
+
+        # Clip joint vel
+        dof_vel = np.clip(dof_vel, -self.vel_limit, self.vel_limit)
+
+
         mapped_dof_pos = dof_pos[mj_to_isaac] - is_joint_pos
         mapped_dof_vel = dof_vel[mj_to_isaac] # - is_joint_pos
 
