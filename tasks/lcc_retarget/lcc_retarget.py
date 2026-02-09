@@ -89,7 +89,7 @@ class LCCRetargetPolicy(Policy):
         self.policy_dt = 0.0
         self.joint_vel = np.zeros((29,), dtype=np.float32)
         self.alpha = np.ones((29,), dtype=np.float32)
-        ankle_filt = 0.3
+        ankle_filt = 1.0
         self.alpha[21] = ankle_filt
         self.alpha[22] = ankle_filt
         self.alpha[27] = ankle_filt
