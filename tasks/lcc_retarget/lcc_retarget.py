@@ -87,6 +87,13 @@ class LCCRetargetPolicy(Policy):
         self.w = None
         self.policy_last_time = time_.perf_counter()
         self.policy_dt = 0.0
+        self.joint_vel = np.zeros((29,), dtype=np.float32)
+        self.alpha = np.ones((29,), dtype=np.float32)
+        ankle_filt = 1.0
+        self.alpha[21] = ankle_filt
+        self.alpha[22] = ankle_filt
+        self.alpha[27] = ankle_filt
+        self.alpha[28] = ankle_filt
 
     def reset(self):
         self.counter = 0
@@ -182,10 +189,11 @@ class LCCRetargetPolicy(Policy):
         base_quat = self.robot.data.root_quat_w
         base_ang_vel = self.robot.data.root_ang_vel_b
         base_lin_vel = self.robot.data.root_lin_vel_b
+        self.joint_vel = self.joint_vel * (1 - self.alpha) + dof_vel * self.alpha
 
         obs = self.compute_observation(
             dof_pos,
-            dof_vel,
+            self.joint_vel,
             base_ang_vel,
             base_lin_vel
         )
@@ -202,7 +210,7 @@ class LCCRetargetPolicy(Policy):
             base_ang_vel,
             grav_vec,
             dof_pos,
-            dof_vel,
+            self.joint_vel,
             self.last_action.reshape(-1)
         )
         #u_ff = u_ff * 0.0 + 4.0

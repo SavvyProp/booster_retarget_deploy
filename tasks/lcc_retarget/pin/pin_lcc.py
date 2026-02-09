@@ -34,6 +34,10 @@ class PinLCC:
 
         self.qpin = np.zeros([self.model.nq])
         self.vpin = np.zeros([self.model.nv])
+
+        self.p_weight = self._ids["p_gains"]
+        self.d_weight = self._ids["d_gains"]
+        self.tau_limit = self._ids["tau_limits"]
         #self.lcc_step = jax.jit(lcc_step)
 
         self.lcc_step = jax.jit(
@@ -113,6 +117,11 @@ class PinLCC:
         self.com_accs = com_accs
         self.com_angvel = com_angvel
         self.w = w
+
+        clipped_torques = jnp.clip(u_ff + pd_tau, -self.tau_limit, self.tau_limit)
+        p_torque = clipped_torques - u_ff + self.d_weight * joint_vel
+        des_pos = (p_torque / (self.p_weight * 0.75)) + joint_pos
+
         #u_ff = u_ff * 0.00 + 4.0
         #print(f)
         return u_ff, des_pos
