@@ -38,10 +38,10 @@ class PinLCC:
         self.p_weight = self._ids["p_gains"]
         self.d_weight = self._ids["d_gains"]
         self.tau_limit = self._ids["tau_limits"]
-        self.tau_limit = self.tau_limit.at[21].set(self.tau_limit[21] * 0.8)
-        self.tau_limit = self.tau_limit.at[22].set(self.tau_limit[22] * 0.8)
-        self.tau_limit = self.tau_limit.at[27].set(self.tau_limit[27] * 0.8)
-        self.tau_limit = self.tau_limit.at[28].set(self.tau_limit[28] * 0.8)
+        #self.tau_limit = self.tau_limit.at[21].set(self.tau_limit[21] * 1.0)
+        #self.tau_limit = self.tau_limit.at[22].set(self.tau_limit[22] * 1.0)
+        #self.tau_limit = self.tau_limit.at[27].set(self.tau_limit[27] * 1.0)
+        #self.tau_limit = self.tau_limit.at[28].set(self.tau_limit[28] * 1.0)
         #self.lcc_step = jax.jit(lcc_step)
 
         self.lcc_step = jax.jit(
