@@ -117,10 +117,10 @@ class LCCRetargetPolicy(Policy):
         self.alpha[28] = ankle_filt
 
         self.vel_limit = np.ones((29,), dtype=np.float32) * 10.0
-        self.vel_limit[21] = 10.0
-        self.vel_limit[22] = 10.0
-        self.vel_limit[27] = 10.0
-        self.vel_limit[28] = 10.0
+        self.vel_limit[21] = 5.0
+        self.vel_limit[22] = 5.0
+        self.vel_limit[27] = 5.0
+        self.vel_limit[28] = 5.0
 
     def reset(self):
         self.counter = 0

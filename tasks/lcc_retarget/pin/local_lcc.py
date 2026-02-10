@@ -290,7 +290,7 @@ def ctrl2components(act, ids):
 
 def highlvlPD(com_vel, com_angvel,
               des_com_vel, des_angvel):
-    c_lin_p_gain = 5.0
+    c_lin_p_gain = 7.0
     com_acc = c_lin_p_gain * (des_com_vel - com_vel)
     #com_acc = jnp.clip(com_acc, -3.0, 3.0)
     com_acc_mag = jnp.linalg.norm(com_acc)
