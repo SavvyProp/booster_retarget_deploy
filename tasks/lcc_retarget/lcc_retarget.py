@@ -17,8 +17,15 @@ import onnx
 isaac_to_mj = [
     0, 4, 1, 5, 9, 13, 17, 21, 25, 2, 6, 10, 14, 18, 22, 26, 3, 7, 11, 15, 19, 23, 27, 8, 12, 16, 20, 24, 28
 ]
+mj_ankle = [21, 22, 27, 28]
+not_mj_ankle = [i for i in range(29) if i not in mj_ankle]
+reorder = mj_ankle + not_mj_ankle
 mj_to_isaac = [
     0, 2, 9, 16, 1, 3, 10, 17, 23, 4, 11, 18, 24, 5, 12, 19, 25, 6, 13, 20, 26, 7, 14, 21, 27, 8, 15, 22, 28
+]
+
+mj_to_isaac_ankle = [
+    21, 27, 22, 28, 0, 2, 9, 16, 1, 3, 10, 17, 23, 4, 11, 18, 24, 5, 12, 19, 25, 6, 13, 20, 26, 7, 14, 8, 15
 ]
 
 is_joint_pos = np.array(
@@ -26,6 +33,14 @@ is_joint_pos = np.array(
     0.0, 0.2, 0.2, 0.0, 0.0, -1.35, 1.35, -0.2, -0.2, 0.0,
     0.0, 0.0, 0.0, -0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.42,
     0.42, 0.0, 0.0, -0.23, -0.23, 0.0, 0.0, 0.0, 0.0,
+]
+).astype(np.float32)
+
+is_joint_pos_ankle = np.array(
+    [
+    -0.23, -0.23, 0.0, 0.0, 0.0, 0.2, 0.2, 0.0, 0.0, -1.35, 1.35, -0.2, -0.2, 0.0,
+    0.0, 0.0, 0.0, -0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.42,
+    0.42, 0.0, 0.0, 0.0, 0.0,
 ]
 ).astype(np.float32)
 
@@ -50,6 +65,12 @@ class LCCRetargetPolicy(Policy):
         for inp in self.session.get_inputs():
             if inp.name == "obs":
                 self.obs_size = inp.shape[1]
+
+        self.history_length = 1
+        if self.obs_size > 191:
+            self.history_length = 4
+
+        self.obs_hist = None #np.zeros((self.history_length, 191), dtype=np.float32)
         
         dummy_obs = np.zeros((1, self.obs_size)).astype(np.float32)
         
@@ -108,41 +129,15 @@ class LCCRetargetPolicy(Policy):
     
     def compute_observation(self, dof_pos, dof_vel, base_ang_vel, base_lin_vel):
         """Compute current observation following sim2sim.py pattern."""
-        # Get robot state
-        #dof_pos = self.robot.data.joint_pos
-        #dof_vel = self.robot.data.joint_vel
-        #base_quat = self.robot.data.root_quat_w
-        #base_ang_vel = self.robot.data.root_ang_vel_b
-        #base_lin_vel = self.robot.data.root_lin_vel_b
-        # Project gravity vector into base frame
-        #gravity_w = torch.tensor([0.0, 0.0, -1.0], dtype=torch.float32)
-        #projected_gravity = lab_math.quat_apply_inverse(base_quat, gravity_w)
-
-        #if self.cfg.enable_safety_fallback:
-            # fall detection: stop if falling
-        #    if projected_gravity[2] > -0.5:
-        #        print("\nFalling detected, stopping policy for safety. "
-        #              "You can disable safety fallback by setting "
-        #              f"{self.cfg.__class__.__name__}.enable_safety_fallback "
-        #              "to False.")
-                #self.controller.stop()
-
-        #default_joint_pos_sim = self.robot.default_joint_pos
-
-        # Clip joint vel
+        
         dof_vel = np.clip(dof_vel, -self.vel_limit, self.vel_limit)
 
-
-        mapped_dof_pos = dof_pos[mj_to_isaac] - is_joint_pos
-        mapped_dof_vel = dof_vel[mj_to_isaac] # - is_joint_pos
-
-        # Build observation: [
-        #   ang_vel(3),
-        #   projected_gravity(3),
-        #   commands(3),
-        #   joint_pos(num_action),
-        #   joint_vel(num_action),
-        #   actions(num_action)]
+        if self.history_length > 1:
+            mapped_dof_pos = dof_pos[mj_to_isaac_ankle] - is_joint_pos_ankle
+            mapped_dof_vel = dof_vel[mj_to_isaac_ankle]
+        else:
+            mapped_dof_pos = dof_pos[mj_to_isaac] - is_joint_pos
+            mapped_dof_vel = dof_vel[mj_to_isaac]
 
         if self.counter < self.delay:
             self.prev_joint_pos = is_joint_pos.reshape(1, -1)
@@ -162,11 +157,28 @@ class LCCRetargetPolicy(Policy):
         ], axis=-1)
 
         self.obs = obs
-
+        if self.obs_hist is None:
+            self.obs_hist = np.tile(obs.reshape(1, -1), (self.history_length, 1))
+        else:
+            self.obs_hist[:-1, :] = self.obs_hist[1:, :]
+            self.obs_hist[-1, :] = obs
         return obs
     
     def eval_network(self, obs):
-        
+        if self.history_length > 1:
+            cmd = self.obs_hist[:, :29 * 2].reshape(1, -1)
+            base_lin_vel = self.obs_hist[:, 29 * 2: 29 * 2 + 3].reshape(1, -1)
+            base_ang_vel = self.obs_hist[:, 29 * 2 + 3: 29 * 2 + 6].reshape(1, -1)
+            dof_pos = self.obs_hist[:, 29 * 2 + 6: 29 * 3 + 6]
+            dof_pos_high = dof_pos[:, :4].reshape(1, -1)
+            dof_pos_low = dof_pos[:, 4:].reshape(1, -1)
+            dof_vel = self.obs_hist[:, 29 * 3 + 6: 29 * 4 + 6]
+            dof_vel_high = dof_vel[:, :4].reshape(1, -1)
+            dof_vel_low = dof_vel[:, 4:].reshape(1, -1)
+            last_action = self.obs_hist[:, 29 * 4 + 6:].reshape(1, -1)
+            obs = np.concatenate([cmd, base_lin_vel, base_ang_vel, dof_pos_high,
+                                  dof_pos_low, dof_vel_high, dof_vel_low, last_action], axis=-1)
+
         time = np.array([[self.counter]]).astype(np.float32)
         time = time.reshape(1, -1)
         obs = obs.reshape(1, -1).astype(np.float32)
@@ -202,16 +214,13 @@ class LCCRetargetPolicy(Policy):
         base_lin_vel = self.robot.data.root_lin_vel_b
         self.joint_vel = self.joint_vel * (1 - self.alpha) + dof_vel * self.alpha
 
-        obs = self.compute_observation(
-            dof_pos,
-            self.joint_vel,
-            base_ang_vel,
-            base_lin_vel
-        )
-
-        print("Last obs: ", obs[-1])
-
         if self.decimation_counter % 5 == 0:
+            obs = self.compute_observation(
+                dof_pos,
+                self.joint_vel,
+                base_ang_vel,
+                base_lin_vel
+            )
             self.eval_network(obs)
             self.decimation_counter = 0
 
