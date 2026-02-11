@@ -37,18 +37,8 @@ class RobotData:
         self.root_lin_vel_b: np.ndarray = np.zeros((3,), dtype=np.float32)
         self.root_ang_vel_b: np.ndarray = np.zeros((3,), dtype=np.float32)
         self.root_pos_w: np.ndarray = np.zeros((3,), dtype=np.float32)
-        self.root_quat_w: np.ndarray = np.zeros((3,), dtype=np.float32)
+        self.root_quat_w: np.ndarray = np.zeros((4,), dtype=np.float32)
         self.grav_vec_b: np.ndarray = np.zeros((3,), dtype=np.float32)
-
-    def to(self, device: torch.device | str) -> None:
-        self.device = device
-        self.joint_pos = self.joint_pos.to(device)
-        self.joint_vel = self.joint_vel.to(device)
-        self.feedback_torque = self.feedback_torque.to(device)
-        self.root_lin_vel_b = self.root_lin_vel_b.to(device)
-        self.root_ang_vel_b = self.root_ang_vel_b.to(device)
-        self.root_pos_w = self.root_pos_w.to(device)
-        self.root_quat_w = self.root_quat_w.to(device)
 
 
 class BoosterRobot:

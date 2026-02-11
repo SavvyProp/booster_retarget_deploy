@@ -280,7 +280,7 @@ class BoosterRobotPortal:
 
         except Exception as e:
             self.logger.error(f"Error in _low_state_handler: {e}")
-            self.running = False
+            self.is_running = False
             self.exit_event.set()
 
     def create_low_cmd_publisher(self, name):
