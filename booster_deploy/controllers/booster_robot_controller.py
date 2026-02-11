@@ -669,7 +669,9 @@ class BoosterRobotController(BaseController):
             self.u_ff = u_ff
             
             #print("Dof targets:", dof_targets.cpu().numpy())
-            self.ctrl_step(dof_targets, u_ff)
+            if start > 20:
+                self.ctrl_step(dof_targets, u_ff)
+            start += 1
 
             #if self.portal.timer.get_time() - last_save_time > 0.01:
             if True:
