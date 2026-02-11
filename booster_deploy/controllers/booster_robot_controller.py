@@ -627,7 +627,6 @@ class BoosterRobotController(BaseController):
         next_inference_time = time.perf_counter() 
         self.portal.logger.info("Inference loop started")
         st0 = time.perf_counter()
-
         
         # Warm start policy step
         dof_targets, u_ff = self.policy_step()
@@ -637,7 +636,7 @@ class BoosterRobotController(BaseController):
         logging_history = []
 
         low_meas_t = time.perf_counter()
-
+        #next_inference_time = time.perf_counter()
         while self.is_running and not self.portal.exit_event.is_set():
             ts = time.perf_counter()
             if ts < next_inference_time:
@@ -670,7 +669,7 @@ class BoosterRobotController(BaseController):
             self.u_ff = u_ff
             
             #print("Dof targets:", dof_targets.cpu().numpy())
-            if start > 20:
+            if start > 4:
                 self.ctrl_step(dof_targets, u_ff)
             start += 1
 
