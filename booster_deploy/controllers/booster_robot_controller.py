@@ -655,6 +655,7 @@ class BoosterRobotController(BaseController):
                     print("Avg low state dt: {:.4f} s".format(avg_dt))
                     if avg_dt > 0.90 * self.cfg.policy_dt:
                         start = 1
+                        next_inference_time = ts + self.cfg.policy_dt
                         self.policy.policy_last_time = ts
                 continue
             #if start > 1 and start < 20:
