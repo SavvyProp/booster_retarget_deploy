@@ -316,12 +316,12 @@ T1_29DOF_LCC_CFG = RobotCfg(
         98.6960 * GAIN_FAC,  # Left_Knee_Pitch
         19.7392 * GAIN_FAC,  # Left_Ankle_Pitch
         19.7392 * GAIN_FAC,  # Left_Ankle_Roll
-        98.6960 * GAIN_FAC,  # Right_Hip_Pitch
-        39.4784 * GAIN_FAC,  # Right_Hip_Roll
-        39.4784 * GAIN_FAC,  # Right_Hip_Yaw
-        98.6960 * GAIN_FAC,  # Right_Knee_Pitch
-        19.7392 * GAIN_FAC,  # Right_Ankle_Pitch
-        19.7392 * GAIN_FAC,  # Right_Ankle_Roll
+        98.6960 * GAIN_FAC * 1.1,  # Right_Hip_Pitch
+        39.4784 * GAIN_FAC * 1.1,  # Right_Hip_Roll
+        39.4784 * GAIN_FAC * 1.1,  # Right_Hip_Yaw
+        98.6960 * GAIN_FAC * 1.1,  # Right_Knee_Pitch
+        19.7392 * GAIN_FAC * 1.1,  # Right_Ankle_Pitch
+        19.7392 * GAIN_FAC * 1.1,  # Right_Ankle_Roll
     ],
     joint_damping=[
         1.2566,  # AAHead_yaw
