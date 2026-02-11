@@ -130,7 +130,7 @@ class LCCRetargetPolicy(Policy):
     def compute_observation(self, dof_pos, dof_vel, base_ang_vel, base_lin_vel):
         """Compute current observation following sim2sim.py pattern."""
         
-        #dof_vel = np.clip(dof_vel, -self.vel_limit, self.vel_limit)
+        dof_vel = np.clip(dof_vel, -self.vel_limit, self.vel_limit)
 
         if self.history_length > 1:
             mapped_dof_pos = dof_pos[mj_to_isaac_ankle] - is_joint_pos_ankle
