@@ -122,6 +122,10 @@ class LCCRetargetPolicy(Policy):
         self.vel_limit[27] = 5.0
         self.vel_limit[28] = 5.0
 
+        self.prev_base_vel = np.zeros([3,])
+        self.prev_u_ff = np.zeros((29,), dtype=np.float32)
+        self.prev_des_pos = np.zeros((29,), dtype=np.float32)
+
     def reset(self):
         self.counter = 0
         self.last_action = np.zeros_like(self.last_action)
@@ -147,6 +151,8 @@ class LCCRetargetPolicy(Policy):
             self.prev_joint_pos,
             self.prev_joint_vel,], axis = -1).astype(np.float32)
         
+        #self.prev_base_vel = base_lin_vel * 0.3 + self.prev_base_vel * 0.70
+
         obs = np.concatenate([
             cmd[0, :], 
             base_lin_vel,
@@ -247,6 +253,8 @@ class LCCRetargetPolicy(Policy):
         pd_pos = pd_pos.at[0:2].set(0.0)
         #u_ff = u_ff.at[21:23].set(0.0)
         #u_ff = u_ff.at[27:29].set(0.0)
+        self.prev_des_pos = self.prev_des_pos * 0.5 + pd_pos * 0.5
+        self.prev_u_ff = self.prev_u_ff * 0.5 + u_ff * 0.5
         return pd_pos, u_ff
 
 @configclass

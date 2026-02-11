@@ -33,12 +33,13 @@ class MujocoController(BaseController):
         self.decimation = self.cfg.mujoco.decimation
         self.mj_data = mujoco.MjData(self.mj_model)
         mujoco.mj_resetData(self.mj_model, self.mj_data)
+        random_offset = np.random.uniform(-0.15, 0.15, size = self.robot.default_joint_pos.shape)
 
         self.mj_data.qpos = np.concatenate(
             [
                 np.array(self.cfg.mujoco.init_pos, dtype=np.float32),
                 np.array(self.cfg.mujoco.init_quat, dtype=np.float32),
-                self.robot.default_joint_pos,
+                self.robot.default_joint_pos + random_offset,
             ]
         )
         mujoco.mj_forward(self.mj_model, self.mj_data)
