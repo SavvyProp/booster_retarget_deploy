@@ -265,7 +265,7 @@ class LCCRetargetPolicyCfg(PolicyCfg):
 
 @configclass
 class BoosterRobotControllerCfg:
-    low_state_dt: float = 0.0004
+    low_state_dt: float = 0.0005
     metrics_max_events: int = 2000
 
 @configclass
