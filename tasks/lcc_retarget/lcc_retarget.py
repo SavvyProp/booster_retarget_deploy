@@ -253,8 +253,8 @@ class LCCRetargetPolicy(Policy):
         pd_pos = pd_pos.at[0:2].set(0.0)
         #u_ff = u_ff.at[21:23].set(0.0)
         #u_ff = u_ff.at[27:29].set(0.0)
-        self.prev_des_pos = self.prev_des_pos * 0.5 + pd_pos * 0.5
-        self.prev_u_ff = self.prev_u_ff * 0.5 + u_ff * 0.5
+        #self.prev_des_pos = self.prev_des_pos * 0.5 + pd_pos * 0.5
+        #self.prev_u_ff = self.prev_u_ff * 0.5 + u_ff * 0.5
         return pd_pos, u_ff
 
 @configclass
@@ -265,7 +265,7 @@ class LCCRetargetPolicyCfg(PolicyCfg):
 
 @configclass
 class BoosterRobotControllerCfg:
-    low_state_dt: float = 0.0005
+    low_state_dt: float = 0.0004
     metrics_max_events: int = 2000
 
 @configclass
