@@ -29,6 +29,12 @@ class T1_HDM_R(T1RetargetControllerCfg):
         super().__post_init__()
         self.policy.checkpoint_path = "tasks/pd_retarget/models/HDM_R/policy.onnx"
 
+@configclass
+class T1_HDM_WT(T1RetargetControllerCfg):
+    def __post_init__(self):
+        super().__post_init__()
+        self.policy.checkpoint_path = "tasks/pd_retarget/models/HDM_WT/policy.onnx"
+
 register_task(
     "t1_retarget_w2k", T1_accad_W2K())
 
@@ -40,3 +46,6 @@ register_task(
 
 register_task(
     "t1_retarget_hdm_r", T1_HDM_R())
+
+register_task(
+    "t1_retarget_HDM_WT", T1_HDM_WT())
