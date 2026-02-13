@@ -82,6 +82,20 @@ class T1LCC_HDM_WT_2(T1LCCRetargetControllerCfg):
         super().__post_init__()
         self.policy.checkpoint_path = "tasks/lcc_retarget/models/HDM_WT_2/policy.onnx"
 
+@configclass
+class T1LCC_CMU_sidestep(T1LCCRetargetControllerCfg):
+    '''Sidestepping motion for T1 robot.'''
+    def __post_init__(self):
+        super().__post_init__()
+        self.policy.checkpoint_path = "tasks/lcc_retarget/models/CMU_sidestep/policy.onnx"
+
+@configclass
+class T1LCC_CMU_backstep(T1LCCRetargetControllerCfg):
+    '''Sidestepping motion for T1 robot.'''
+    def __post_init__(self):
+        super().__post_init__()
+        self.policy.checkpoint_path = "tasks/lcc_retarget/models/CMU_backstep/policy.onnx"
+
 register_task(
     "t1_lcc_retarget_CMU_41_02", T1LCC_CMU_41_02())
 
@@ -119,4 +133,12 @@ register_task(
 
 register_task(
     "t1_lcc_retarget_lafan_sidesteps_2", T1LCC_lafan_sidesteps_2()
+)
+
+register_task(
+    "t1_lcc_retarget_CMU_sidestep", T1LCC_CMU_sidestep()
+)
+
+register_task(
+    "t1_lcc_retarget_CMU_backstep", T1LCC_CMU_backstep()
 )
