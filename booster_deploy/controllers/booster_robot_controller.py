@@ -676,6 +676,8 @@ class BoosterRobotController(BaseController):
                 prev_dof_targets = prev_dof_targets * alpha + (1 - alpha) * dof_targets
                 prev_u_ff = prev_u_ff * alpha + (1 - alpha) * u_ff
                 self.ctrl_step(prev_dof_targets, prev_u_ff)
+            else:
+                self.ctrl_step(dof_targets, u_ff)
             start += 1
 
             #if self.portal.timer.get_time() - last_save_time > 0.01:
