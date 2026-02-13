@@ -7,6 +7,7 @@ from booster_deploy.utils.isaaclab.configclass import configclass
 from booster_deploy.utils.isaaclab import math as lab_math
 import onnxruntime as ort
 import numpy as np
+import onnx
 import torch
 
 from dataclasses import MISSING
@@ -79,6 +80,14 @@ class PDRetargetPolicy(Policy):
         dummy_obs = np.zeros((1, self.obs_size)).astype(np.float32)
         
         dummy_time = np.array([[self.counter - self.delay]]).astype(np.float32)
+        try:
+            onm = onnx.load(self.cfg.checkpoint_path)
+            metadata_dict = {p.key: p.value for p in onm.metadata_props}  
+            duration = int(metadata_dict["seq_len"]) - 1
+            duration = min(duration, 500)
+        except:
+            duration = 500
+        
         initial_out = self.session.run(None, 
                                        {"obs": dummy_obs, 
                                         "time_step": dummy_time})
@@ -90,7 +99,7 @@ class PDRetargetPolicy(Policy):
         self.prev_body_quat = initial_out[4]
         self.prev_body_vel = initial_out[5]
         self.prev_body_angvel = initial_out[6]
-        self.duration = 500
+        self.duration = duration
         self.obs = np.zeros((self.obs_size,), dtype=np.float32)
 
     def reset(self):
