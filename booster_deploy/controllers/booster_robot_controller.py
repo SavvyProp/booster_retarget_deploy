@@ -671,7 +671,7 @@ class BoosterRobotController(BaseController):
             self.u_ff = u_ff
             
             #print("Dof targets:", dof_targets.cpu().numpy())
-            if start < 100:
+            if start * self.cfg.policy_dt < 0.5:
                 alpha = 0.05
                 prev_dof_targets = prev_dof_targets * alpha + (1 - alpha) * dof_targets
                 prev_u_ff = prev_u_ff * alpha + (1 - alpha) * u_ff
