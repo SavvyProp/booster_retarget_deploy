@@ -47,6 +47,24 @@ class T1_CMU_backstep(T1RetargetControllerCfg):
         super().__post_init__()
         self.policy.checkpoint_path = "tasks/pd_retarget/models/CMU_backstep/policy.onnx"
 
+@configclass
+class T1_lafan_fast_trans(T1RetargetControllerCfg):
+    def __post_init__(self):
+        super().__post_init__()
+        self.policy.checkpoint_path = "tasks/pd_retarget/models/lafan_fast_trans/policy.onnx"
+
+@configclass
+class T1_lafan_balance_trans(T1RetargetControllerCfg):
+    def __post_init__(self):
+        super().__post_init__()
+        self.policy.checkpoint_path = "tasks/pd_retarget/models/lafan_balance_trans/policy.onnx"
+
+@configclass
+class T1_HDM_WF_trans(T1RetargetControllerCfg):
+    def __post_init__(self):
+        super().__post_init__()
+        self.policy.checkpoint_path = "tasks/pd_retarget/models/HDM_WF_trans/policy.onnx"
+
 register_task(
     "t1_retarget_w2k", T1_accad_W2K())
 
@@ -67,3 +85,15 @@ register_task(
 
 register_task(
     "t1_retarget_CMU_backstep", T1_CMU_backstep())
+
+register_task(
+    "t1_retarget_lafan_fast_trans", T1_lafan_fast_trans()
+)
+
+register_task(
+    "t1_retarget_lafan_balance_trans", T1_lafan_balance_trans()
+)
+
+register_task(
+    "t1_retarget_HDM_WF_trans", T1_HDM_WF_trans()
+)

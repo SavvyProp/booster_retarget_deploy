@@ -96,6 +96,27 @@ class T1LCC_CMU_backstep(T1LCCRetargetControllerCfg):
         super().__post_init__()
         self.policy.checkpoint_path = "tasks/lcc_retarget/models/CMU_backstep/policy.onnx"
 
+@configclass
+class T1LCC_lafan_balance_trans(T1LCCRetargetControllerCfg):
+    '''Balance transition motion for T1 robot.'''
+    def __post_init__(self):
+        super().__post_init__()
+        self.policy.checkpoint_path = "tasks/lcc_retarget/models/lafan_balance_trans/policy.onnx"
+
+@configclass
+class T1LCC_HDM_WF_trans(T1LCCRetargetControllerCfg):
+    '''Balance transition motion for T1 robot.'''
+    def __post_init__(self):
+        super().__post_init__()
+        self.policy.checkpoint_path = "tasks/lcc_retarget/models/HDM_WF_trans/policy.onnx"
+
+@configclass
+class T1LCC_lafan_fast_trans(T1LCCRetargetControllerCfg):
+    '''Balance transition motion for T1 robot.'''
+    def __post_init__(self):
+        super().__post_init__()
+        self.policy.checkpoint_path = "tasks/lcc_retarget/models/lafan_fast_trans/policy.onnx"
+
 register_task(
     "t1_lcc_retarget_CMU_41_02", T1LCC_CMU_41_02())
 
@@ -141,4 +162,16 @@ register_task(
 
 register_task(
     "t1_lcc_retarget_CMU_backstep", T1LCC_CMU_backstep()
+)
+
+register_task(
+    "t1_lcc_retarget_lafan_balance_trans", T1LCC_lafan_balance_trans()
+)
+
+register_task(
+    "t1_lcc_retarget_HDM_WF_trans", T1LCC_HDM_WF_trans()
+)
+
+register_task(
+    "t1_lcc_retarget_lafan_fast_trans", T1LCC_lafan_fast_trans()
 )
