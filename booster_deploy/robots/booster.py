@@ -224,7 +224,7 @@ T1_29DOF_CFG = RobotCfg(
     ),
 )
 
-GAIN_FAC = 0.75
+GAIN_FAC = 0.80
 DAMP_FAC = 0.95
 
 T1_29DOF_LCC_CFG = RobotCfg(
