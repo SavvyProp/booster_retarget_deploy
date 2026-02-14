@@ -122,9 +122,9 @@ class PinLCC:
         self.com_angvel = com_angvel
         self.w = w
 
-        clipped_torques = jnp.clip(u_ff + pd_tau, -self.tau_limit, self.tau_limit)
-        p_torque = clipped_torques - u_ff + self.d_weight * joint_vel
-        des_pos = (p_torque / (self.p_weight * 0.75)) + joint_pos
+        #clipped_torques = jnp.clip(u_ff + pd_tau, -self.tau_limit, self.tau_limit)
+        #p_torque = clipped_torques - u_ff + self.d_weight * joint_vel
+        #des_pos = (p_torque / (self.p_weight * 0.75)) + joint_pos
 
         #u_ff = u_ff * 0.00 + 4.0
         #print(f)
