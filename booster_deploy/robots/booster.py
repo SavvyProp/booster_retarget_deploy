@@ -225,6 +225,7 @@ T1_29DOF_CFG = RobotCfg(
 )
 
 GAIN_FAC = 0.75
+DAMP_FAC = 0.95
 
 T1_29DOF_LCC_CFG = RobotCfg(
     name="Booster_T1_29DOF",
@@ -324,34 +325,34 @@ T1_29DOF_LCC_CFG = RobotCfg(
         19.7392 * GAIN_FAC,  # Right_Ankle_Roll
     ],
     joint_damping=[
-        1.2566,  # AAHead_yaw
-        1.2566,  # Head_pitch
-        1.2566,  # Left_Shoulder_Pitch
-        1.2566,  # Left_Shoulder_Roll
-        1.2566,  # Left_Elbow_Pitch
-        1.2566,  # Left_Elbow_Yaw
-        1.2566,  # Left_Wrist_Pitch
-        1.2566,  # Left_Wrist_Yaw
-        1.2566,  # Left_Hand_Roll
-        1.2566,  # Right_Shoulder_Pitch
-        1.2566,  # Right_Shoulder_Roll
-        1.2566,  # Right_Elbow_Pitch
-        1.2566,  # Right_Elbow_Yaw
-        1.2566,  # Right_Wrist_Pitch
-        1.2566,  # Right_Wrist_Yaw
-        1.2566,  # Right_Hand_Roll
-        2.5133,  # Waist
-        6.2832,  # Left_Hip_Pitch
-        2.5133,  # Left_Hip_Roll
-        2.5133,  # Left_Hip_Yaw
-        6.2832,  # Left_Knee_Pitch
+        1.2566 * DAMP_FAC,  # AAHead_yaw
+        1.2566 * DAMP_FAC,  # Head_pitch
+        1.2566 * DAMP_FAC,  # Left_Shoulder_Pitch
+        1.2566 * DAMP_FAC,  # Left_Shoulder_Roll
+        1.2566 * DAMP_FAC,  # Left_Elbow_Pitch
+        1.2566 * DAMP_FAC,  # Left_Elbow_Yaw
+        1.2566 * DAMP_FAC,  # Left_Wrist_Pitch
+        1.2566 * DAMP_FAC,  # Left_Wrist_Yaw
+        1.2566 * DAMP_FAC,  # Left_Hand_Roll
+        1.2566 * DAMP_FAC,  # Right_Shoulder_Pitch
+        1.2566 * DAMP_FAC,  # Right_Shoulder_Roll
+        1.2566 * DAMP_FAC,  # Right_Elbow_Pitch
+        1.2566 * DAMP_FAC,  # Right_Elbow_Yaw
+        1.2566 * DAMP_FAC,  # Right_Wrist_Pitch
+        1.2566 * DAMP_FAC,  # Right_Wrist_Yaw
+        1.2566 * DAMP_FAC,  # Right_Hand_Roll
+        2.5133 * DAMP_FAC,  # Waist
+        6.2832 * DAMP_FAC,  # Left_Hip_Pitch
+        2.5133 * DAMP_FAC,  # Left_Hip_Roll
+        2.5133 * DAMP_FAC,  # Left_Hip_Yaw
+        6.2832 * DAMP_FAC,  # Left_Knee_Pitch
         4.0,  # Left_Ankle_Pitch
         4.0,  # Left_Ankle_Roll
-        6.2832,  # Right_Hip_Pitch
-        2.5133,  # Right_Hip_Roll
-        2.5133,  # Right_Hip_Yaw
-        6.2832,  # Right_Knee_Pitch
-        4.0,  # Right_Ankle_Pitch
+        6.2832 * DAMP_FAC,  # Right_Hip_Pitch
+        2.5133 * DAMP_FAC,  # Right_Hip_Roll
+        2.5133 * DAMP_FAC,  # Right_Hip_Yaw
+        6.2832 * DAMP_FAC,  # Right_Knee_Pitch
+        4.0,# Right_Ankle_Pitch
         4.0,  # Right_Ankle_Roll
     ],
     effort_limit=[
