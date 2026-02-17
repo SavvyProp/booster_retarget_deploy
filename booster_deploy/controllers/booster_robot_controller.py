@@ -660,11 +660,14 @@ class BoosterRobotController(BaseController):
                         self.policy.policy_last_time = ts
                 continue
             print("Next Inference Time: {:.6f}".format(next_inference_time))
+            st = time.perf_counter()
             state = self.update_state()
             self.portal.metrics["policy_step"].mark()
             dof_targets, u_ff = self.policy_step()
             self.dof_targets = dof_targets
             self.u_ff = u_ff
+            et = time.perf_counter() - st
+            print("Policy step time: {:.4f} ms".format(et * 1000.0))
             
             #print("Dof targets:", dof_targets.cpu().numpy())
             if start * self.cfg.policy_dt < 0.5:
