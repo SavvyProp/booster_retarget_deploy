@@ -5,8 +5,8 @@ from booster_deploy.controllers.controller_cfg import (
 from booster_deploy.robots.booster import T1_29DOF_LCC_CFG
 from booster_deploy.utils.isaaclab.configclass import configclass
 from booster_deploy.utils.isaaclab import math as lab_math
+from booster_deploy.utils.onnx_runtime import create_inference_session
 from tasks.lcc_retarget.pin.pin_lcc import PinLCC
-import onnxruntime as ort
 import numpy as np
 from typing import List, Optional
 import torch
@@ -58,7 +58,18 @@ class LCCRetargetPolicy(Policy):
         super().__init__(cfg, controller)
         self.cfg = cfg
         self.robot = controller.robot
-        self.session = ort.InferenceSession(self.cfg.checkpoint_path)
+        #self.session = ort.InferenceSession(self.cfg.checkpoint_path)
+        self.session = create_inference_session(
+            self.cfg.checkpoint_path,
+            device=str(self.cfg.device),
+            prefer_gpu=self.cfg.prefer_gpu,
+            cuda_device_id=self.cfg.cuda_device_id,
+            intra_op_num_threads=self.cfg.intra_op_num_threads,
+            inter_op_num_threads=self.cfg.inter_op_num_threads,
+        )
+        if self.cfg.prefer_gpu and "CUDAExecutionProvider" not in self.session.get_providers():
+            print("CUDAExecutionProvider not available. Falling back to CPUExecutionProvider.")
+        print(f"ONNX Runtime providers: {self.session.get_providers()}")
         self.last_action = np.zeros((29 * 2 + 7 + 4,), dtype=np.float32)
         self.counter = 0
         self.delay = 0
@@ -218,12 +229,12 @@ class LCCRetargetPolicy(Policy):
         base_quat = self.robot.data.root_quat_w
         base_ang_vel = self.robot.data.root_ang_vel_b
         base_lin_vel = self.robot.data.root_lin_vel_b
-        self.joint_vel = self.joint_vel * (1 - self.alpha) + dof_vel * self.alpha
+        #self.joint_vel = self.joint_vel * (1 - self.alpha) + dof_vel * self.alpha
 
-        if self.decimation_counter % 8 == 0:
+        if self.decimation_counter % 5 == 0:
             obs = self.compute_observation(
                 dof_pos,
-                self.joint_vel,
+                dof_vel,
                 base_ang_vel,
                 base_lin_vel
             )
@@ -247,14 +258,7 @@ class LCCRetargetPolicy(Policy):
         self.w = self.pin_lcc.w
 
         self.decimation_counter += 1
-        #pd_pos = pd_pos.numpy()
-        #pd_pos[0] = 0.0
-        #pd_pos[1] = 0.0
         pd_pos = pd_pos.at[0:2].set(0.0)
-        #u_ff = u_ff.at[21:23].set(0.0)
-        #u_ff = u_ff.at[27:29].set(0.0)
-        #self.prev_des_pos = self.prev_des_pos * 0.5 + pd_pos * 0.5
-        #self.prev_u_ff = self.prev_u_ff * 0.5 + u_ff * 0.5
         return pd_pos, u_ff
 
 @configclass
@@ -262,6 +266,10 @@ class LCCRetargetPolicyCfg(PolicyCfg):
     constructor = LCCRetargetPolicy
     checkpoint_path: str = MISSING  # type: ignore
     policy_joint_names: list[str] = MISSING  # type: ignore
+    prefer_gpu: bool = True
+    cuda_device_id: int = 0
+    intra_op_num_threads: int = 0
+    inter_op_num_threads: int = 0
 
 @configclass
 class BoosterRobotControllerCfg:
@@ -282,7 +290,7 @@ class MujocoControllerCfg:
 @configclass
 class T1LCCRetargetControllerCfg(ControllerCfg):
     robot = T1_29DOF_LCC_CFG
-    policy_dt = 0.0025
+    policy_dt = 0.004
     booster = BoosterRobotControllerCfg()
     mujoco = MujocoControllerCfg()
     policy = LCCRetargetPolicyCfg(

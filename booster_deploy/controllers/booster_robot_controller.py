@@ -504,7 +504,7 @@ class BoosterRobotController(BaseController):
     def __init__(self, cfg: ControllerCfg, portal: BoosterRobotPortal) -> None:
         super().__init__(cfg)
         self.portal = portal
-        slice_size = 5 * self.robot.num_joints + 7 + 12 + 30 + 6 + 6 + 3 + 5 + 2 + self.policy.obs_size + 3
+        #slice_size = 5 * self.robot.num_joints + 7 + 12 + 30 + 6 + 6 + 3 + 5 + 2 + self.policy.obs_size + 3
         self.obs_list = None#np.zeros((10000, slice_size), dtype=np.float32)
 
     def update_vel_command(self):
@@ -600,8 +600,8 @@ class BoosterRobotController(BaseController):
             kd_val = self.robot.joint_damping[i]# * 0.0
             fb_joint_pos = dof_targets[i]
             ff_joint_torque = u_ff[i]
-            ff_joint_pos = ff_joint_torque / kp_val
-            new_q = self.robot.default_joint_pos_list[i]
+            #ff_joint_pos = ff_joint_torque / kp_val
+            #new_q = self.robot.default_joint_pos_list[i]
             self.portal.motor_cmd[i].q = fb_joint_pos# + ff_joint_pos
             self.portal.motor_cmd[i].kp = kp_val# * 0.0 # * 0.0
             self.portal.motor_cmd[i].kd = kd_val# * 0.0 # * 0.0
@@ -659,10 +659,6 @@ class BoosterRobotController(BaseController):
                         next_inference_time = ts + self.cfg.policy_dt
                         self.policy.policy_last_time = ts
                 continue
-            #if start > 1 and start < 20:
-            #   self.policy.policy_last_time = ts
-            #    start += 1
-            #    continue
             print("Next Inference Time: {:.6f}".format(next_inference_time))
             state = self.update_state()
             self.portal.metrics["policy_step"].mark()

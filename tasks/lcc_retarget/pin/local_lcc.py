@@ -196,7 +196,13 @@ def ft_ref(eefpos, com_pos,
     
     # Make Costs
 
-    w_diag = jnp.square(1.0 / ids["tau_limits"])
+    tau_limits = ids["tau_limits"]
+    tau_limits = tau_limits.at[-1].set(7.5) # Right ankle roll
+    tau_limits = tau_limits.at[-2].set(10) # Right ankle pitch
+    tau_limits = tau_limits.at[-7].set(7.5) # Left ankle roll
+    tau_limits = tau_limits.at[-8].set(10) # Left ankle pitch
+
+    w_diag = jnp.square(1.0 / tau_limits)
 
     big_q_mag, small_c_mag = f_mag_q(w, ids)
     big_q_mag *= weights[0]
@@ -216,19 +222,6 @@ def ft_ref(eefpos, com_pos,
     sol = schur_solve(qp_q, qp_c, centroid_lhs, centroid_rhs)
 
     f = sol
-    f_over = jnp.array(
-        [ 3.6033440e+01,  1.9727881e+02,  1.9957552e+01,  1.9628253e+00,
- -7.1052070e+00,  5.9950781e+00, -3.3069395e-03, -4.1283653e-03,
- -5.8412220e-04, -4.9243364e-03, -1.6120942e-03, -5.0989084e-04,
- -1.0998411e-02,  7.9323128e-03, -6.5745128e-04, -2.1900069e-03,
-  5.4701101e-03, -1.8007433e-03,  1.6207802e-01, -1.3599781e+01,
-  1.5003424e+02,  7.9523454e+00,  1.5955346e+01, -2.5248315e+00,
- -8.6390524e+00, -1.2453608e+01,  1.9170102e+02,  9.2213621e+00,
- -1.7784811e+01, -3.0053470e+00]
-    )
-    f_over = jnp.zeros([30])
-    f_over = f.at[20].set(170.0)
-    f_over = f.at[26].set(170.0)
     tau = -jacs[:, 6:].T @ f
     #tau = -jacs[:, 6:].T @ f_over
     debug_dict = {}
@@ -313,8 +306,8 @@ def step(base_linvel, base_angvel, grav_vac,
     tau = output["torque"]
 
 
-    p_weight = ids["p_gains"]
-    d_weight = ids["d_gains"]
+    #p_weight = ids["p_gains"]
+    #d_weight = ids["d_gains"]
 
 
     #com_vel = data.qvel[ids["joint_vel_ids"]][0:3]
@@ -336,13 +329,13 @@ def step(base_linvel, base_angvel, grav_vac,
     #p_weight = p_weight * (1.0 - torque_fac * 0.5)
     
     #pd_tau = p_weight * GAIN_FAC * (des_pos - qpos) + d_weight * (0 - qvel)
-    p_tau = p_weight * GAIN_FAC * (des_pos - qpos)
-    d_tau = d_weight * (0 - qvel)
+    #p_tau = p_weight * GAIN_FAC * (des_pos - qpos)
+    #d_tau = d_weight * (0 - qvel)
     #exceed_limit_mask = jnp.where(qpos < ids["jnt_limits"][0, :] * 0.99, 1.0, 0.0) + jnp.where(qpos > ids["jnt_limits"][1, :] * 0.99, 1.0, 0.0)
-    pd_tau = p_tau + d_tau
+    #pd_tau = p_tau + d_tau
     #pd_tau = pd_tau
 
     #u_final = u * (pd_weight) + pd_tau * (1.0 - pd_weight)
     #u = jnp.clip(u, -ids["tau_limits"], ids["tau_limits"])
 
-    return u_ff, pd_tau, des_pos, f, com_accs, des_com_vel, des_angvel, w
+    return u_ff, des_pos, des_pos, f, com_accs, des_com_vel, des_angvel, w

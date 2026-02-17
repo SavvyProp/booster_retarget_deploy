@@ -5,7 +5,7 @@ from booster_deploy.controllers.controller_cfg import (
 from booster_deploy.robots.booster import T1_29DOF_CFG
 from booster_deploy.utils.isaaclab.configclass import configclass
 from booster_deploy.utils.isaaclab import math as lab_math
-import onnxruntime as ort
+from booster_deploy.utils.onnx_runtime import create_inference_session
 import numpy as np
 import onnx
 import torch
@@ -57,7 +57,17 @@ class PDRetargetPolicy(Policy):
         super().__init__(cfg, controller)
         self.cfg = cfg
         self.robot = controller.robot
-        self.session = ort.InferenceSession(self.cfg.checkpoint_path)
+        self.session = create_inference_session(
+            self.cfg.checkpoint_path,
+            device=str(self.cfg.device),
+            prefer_gpu=self.cfg.prefer_gpu,
+            cuda_device_id=self.cfg.cuda_device_id,
+            intra_op_num_threads=self.cfg.intra_op_num_threads,
+            inter_op_num_threads=self.cfg.inter_op_num_threads,
+        )
+        if self.cfg.prefer_gpu and "CUDAExecutionProvider" not in self.session.get_providers():
+            print("CUDAExecutionProvider not available. Falling back to CPUExecutionProvider.")
+        print(f"ONNX Runtime providers: {self.session.get_providers()}")
         self.last_action = np.zeros((29), dtype=np.float32)
         self.counter = 0
         self.delay = 0
@@ -199,6 +209,10 @@ class PDRetargetPolicyCfg(PolicyCfg):
     constructor = PDRetargetPolicy
     checkpoint_path: str = MISSING  # type: ignore
     policy_joint_names: list[str] = MISSING  # type: ignore
+    prefer_gpu: bool = True
+    cuda_device_id: int = 0
+    intra_op_num_threads: int = 0
+    inter_op_num_threads: int = 0
 
 @configclass
 class T1RetargetControllerCfg(ControllerCfg):
