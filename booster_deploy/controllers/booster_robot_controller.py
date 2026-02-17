@@ -639,6 +639,7 @@ class BoosterRobotController(BaseController):
         #next_inference_time = time.perf_counter()
         prev_dof_targets = dof_targets# * 0.0
         prev_u_ff = u_ff# * 0.0
+        cmd_time = time.perf_counter()
         while self.is_running and not self.portal.exit_event.is_set():
             ts = time.perf_counter()
             if ts < next_inference_time:
@@ -677,6 +678,9 @@ class BoosterRobotController(BaseController):
                 self.ctrl_step(prev_dof_targets, prev_u_ff)
             else:
                 self.ctrl_step(dof_targets, u_ff)
+            ts1 = time.perf_counter() - cmd_time
+            print("Control step time: {:.4f} ms".format(ts1 * 1000.0))
+            cmd_time = time.perf_counter()
             start += 1
 
             #if self.portal.timer.get_time() - last_save_time > 0.01:
