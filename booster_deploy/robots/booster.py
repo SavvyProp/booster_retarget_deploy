@@ -224,8 +224,8 @@ T1_29DOF_CFG = RobotCfg(
     ),
 )
 
-GAIN_FAC = 0.80
-DAMP_FAC = 0.95
+GAIN_FAC = 0.75
+DAMP_FAC = 1.0
 
 T1_29DOF_LCC_CFG = RobotCfg(
     name="Booster_T1_29DOF",
@@ -315,14 +315,14 @@ T1_29DOF_LCC_CFG = RobotCfg(
         39.4784 * GAIN_FAC,  # Left_Hip_Roll
         39.4784 * GAIN_FAC,  # Left_Hip_Yaw
         98.6960 * GAIN_FAC,  # Left_Knee_Pitch
-        19.7392 * GAIN_FAC * 1.05,  # Left_Ankle_Pitch
-        19.7392 * GAIN_FAC * 1.05,  # Left_Ankle_Roll
+        19.7392 * GAIN_FAC,  # Left_Ankle_Pitch
+        19.7392 * GAIN_FAC,  # Left_Ankle_Roll
         98.6960 * GAIN_FAC,  # Right_Hip_Pitch
         39.4784 * GAIN_FAC,  # Right_Hip_Roll
         39.4784 * GAIN_FAC,  # Right_Hip_Yaw
         98.6960 * GAIN_FAC,  # Right_Knee_Pitch
-        19.7392 * GAIN_FAC * 1.05,  # Right_Ankle_Pitch
-        19.7392 * GAIN_FAC * 1.05,  # Right_Ankle_Roll
+        19.7392 * GAIN_FAC,  # Right_Ankle_Pitch
+        19.7392 * GAIN_FAC,  # Right_Ankle_Roll
     ],
     joint_damping=[
         1.2566 * DAMP_FAC,  # AAHead_yaw
