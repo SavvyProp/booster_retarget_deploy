@@ -197,10 +197,10 @@ def ft_ref(eefpos, com_pos,
     # Make Costs
 
     tau_limits = ids["tau_limits"]
-    tau_limits = tau_limits.at[-1].set(5) # Right ankle roll
-    tau_limits = tau_limits.at[-2].set(5) # Right ankle pitch
-    tau_limits = tau_limits.at[-7].set(5) # Left ankle roll
-    tau_limits = tau_limits.at[-8].set(5) # Left ankle pitch
+    tau_limits = tau_limits.at[-1].set(10) # Right ankle roll
+    tau_limits = tau_limits.at[-2].set(13) # Right ankle pitch
+    tau_limits = tau_limits.at[-7].set(10) # Left ankle roll
+    tau_limits = tau_limits.at[-8].set(13) # Left ankle pitch
 
     w_diag = jnp.square(1.0 / tau_limits)
 
@@ -283,13 +283,13 @@ def ctrl2components(act, ids):
 
 def highlvlPD(com_vel, com_angvel,
               des_com_vel, des_angvel):
-    c_lin_p_gain = 5.0
+    c_lin_p_gain = 7.5
     com_acc = c_lin_p_gain * (des_com_vel - com_vel)
     #com_acc = jnp.clip(com_acc, -3.0, 3.0)
     com_acc_mag = jnp.linalg.norm(com_acc)
     com_acc_mag_ = jnp.clip(com_acc_mag, 0.0, 8.0)
     com_acc = com_acc * (com_acc_mag_ / (1e-6 + com_acc_mag))
-    c_ang_p_gain = 10.0
+    c_ang_p_gain = 15.0
     com_angacc = c_ang_p_gain * (des_angvel - com_angvel)
     com_accs = jnp.concatenate([com_acc, com_angacc], axis = 0)
     return com_accs
