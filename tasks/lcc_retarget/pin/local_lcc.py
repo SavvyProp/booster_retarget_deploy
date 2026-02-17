@@ -289,7 +289,7 @@ def highlvlPD(com_vel, com_angvel,
     com_acc_mag = jnp.linalg.norm(com_acc)
     com_acc_mag_ = jnp.clip(com_acc_mag, 0.0, 8.0)
     com_acc = com_acc * (com_acc_mag_ / (1e-6 + com_acc_mag))
-    c_ang_p_gain = 13
+    c_ang_p_gain = 15
     com_angacc = c_ang_p_gain * (des_angvel - com_angvel)
     com_accs = jnp.concatenate([com_acc, com_angacc], axis = 0)
     return com_accs
