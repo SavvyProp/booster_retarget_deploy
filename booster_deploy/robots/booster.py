@@ -225,7 +225,7 @@ T1_29DOF_CFG = RobotCfg(
 )
 
 GAIN_FAC = 0.78
-DAMP_FAC = 0.98
+DAMP_FAC = 0.90
 
 T1_29DOF_LCC_CFG = RobotCfg(
     name="Booster_T1_29DOF",
