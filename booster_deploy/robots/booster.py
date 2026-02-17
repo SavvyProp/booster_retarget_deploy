@@ -346,14 +346,14 @@ T1_29DOF_LCC_CFG = RobotCfg(
         2.5133 * DAMP_FAC,  # Left_Hip_Roll
         2.5133 * DAMP_FAC,  # Left_Hip_Yaw
         6.2832 * DAMP_FAC,  # Left_Knee_Pitch
-        3.0,  # Left_Ankle_Pitch
-        3.0,  # Left_Ankle_Roll
+        4.5,  # Left_Ankle_Pitch
+        4.5,  # Left_Ankle_Roll
         6.2832 * DAMP_FAC,  # Right_Hip_Pitch
         2.5133 * DAMP_FAC,  # Right_Hip_Roll
         2.5133 * DAMP_FAC,  # Right_Hip_Yaw
         6.2832 * DAMP_FAC,  # Right_Knee_Pitch
-        3.0,# Right_Ankle_Pitch
-        3.0,  # Right_Ankle_Roll
+        4.5,# Right_Ankle_Pitch
+        4.5,  # Right_Ankle_Roll
     ],
     effort_limit=[
         7,   # AAHead_yaw
