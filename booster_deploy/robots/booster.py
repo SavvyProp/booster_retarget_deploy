@@ -256,7 +256,7 @@ T1_23DOF_LCC_CFG = RobotCfg(
         19.7392 * GAIN_FAC,  # Right_Shoulder_Roll
         19.7392 * GAIN_FAC,  # Right_Elbow_Pitch
         19.7392 * GAIN_FAC,  # Right_Elbow_Yaw
-        39.4784 * GAIN_FAC,  # Waist
+        39.4784 * GAIN_FAC * 1.1,  # Waist
         98.6960 * GAIN_FAC,  # Left_Hip_Pitch
         39.4784 * GAIN_FAC,  # Left_Hip_Roll
         39.4784 * GAIN_FAC,  # Left_Hip_Yaw
@@ -286,14 +286,14 @@ T1_23DOF_LCC_CFG = RobotCfg(
         2.5133 * DAMP_FAC * 0.85,  # Left_Hip_Roll
         2.5133 * DAMP_FAC * 0.85,  # Left_Hip_Yaw
         6.2832 * DAMP_FAC,  # Left_Knee_Pitch
-        3.0,  # Left_Ankle_Pitch
-        3.0,  # Left_Ankle_Roll
+        6.0,  # Left_Ankle_Pitch
+        6.0,  # Left_Ankle_Roll
         6.2832 * DAMP_FAC * 0.85,  # Right_Hip_Pitch
         2.5133 * DAMP_FAC * 0.85,  # Right_Hip_Roll
         2.5133 * DAMP_FAC * 0.85,  # Right_Hip_Yaw
         6.2832 * DAMP_FAC,  # Right_Knee_Pitch
-        3.0,# Right_Ankle_Pitch
-        3.0,  # Right_Ankle_Roll
+        6.0,# Right_Ankle_Pitch
+        6.0,  # Right_Ankle_Roll
     ],
     effort_limit=[
         7,   # AAHead_yaw
