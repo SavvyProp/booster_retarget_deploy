@@ -100,7 +100,7 @@ class ViconVelocityEstimator:
             alpha = 0.30
             vicon_pos = vicon_pos - marker_offset_meas
             raw_global_vel = (vicon_pos - self.vicon_pos) / dt
-            self.vicon_pos = vicon_pos - marker_offset_meas
+            self.vicon_pos = vicon_pos
             self.global_vel = self.global_vel * (1 - alpha) + raw_global_vel * alpha
 
             offset = R_world_body @ MARKER_OFFSET #Rotate marker offset into world frame
