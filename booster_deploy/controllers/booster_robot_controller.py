@@ -618,10 +618,10 @@ class BoosterRobotController(BaseController):
             ff_joint_torque = cast(float, u_ff[i])
             #ff_joint_pos = ff_joint_torque / kp_val
             #new_q = self.robot.default_joint_pos_list[i]
-            self.portal.motor_cmd[i].q = 0.0 #fb_joint_pos# + ff_joint_pos
+            self.portal.motor_cmd[i].q = 0.0 * fb_joint_pos# + ff_joint_pos
             self.portal.motor_cmd[i].kp = 0.0 #kp_val# * 0.0 # * 0.0
             self.portal.motor_cmd[i].kd = kd_val# * 0.0 # * 0.0
-            self.portal.motor_cmd[i].tau = 0.0 #ff_joint_torque #float(u_ff[i].item()) * 1.0# * 0.0
+            self.portal.motor_cmd[i].tau = 0.0 * ff_joint_torque #float(u_ff[i].item()) * 1.0# * 0.0
         print("For loop time: {:.4f} ms".format(
             (time.perf_counter() - st2) * 1000.0))
         st = time.perf_counter()
@@ -687,6 +687,7 @@ class BoosterRobotController(BaseController):
             print("Policy step time: {:.4f} ms".format(et * 1000.0))
             
             #print("Dof targets:", dof_targets.cpu().numpy())
+            ctrl_step = time.perf_counter()
             if start * self.cfg.policy_dt < 0.5:
                 alpha = 0.2
                 prev_dof_targets = prev_dof_targets * alpha + (1 - alpha) * dof_targets
@@ -694,6 +695,7 @@ class BoosterRobotController(BaseController):
                 self.ctrl_step(prev_dof_targets, prev_u_ff)
             else:
                 self.ctrl_step(dof_targets, u_ff)
+            print("Ctrl step total time: {:.4f} ms".format((time.perf_counter() - ctrl_step) * 1000.0))
             ts1 = time.perf_counter() - cmd_time
             print("Control step time: {:.4f} ms".format(ts1 * 1000.0))
             cmd_time = time.perf_counter()
