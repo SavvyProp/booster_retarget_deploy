@@ -196,7 +196,7 @@ class LCCRetargetPolicy(Policy):
         base_lin_vel = self.robot.data.root_lin_vel_b
         #self.joint_vel = self.joint_vel * (1 - self.alpha) + dof_vel * self.alpha
 
-        if self.decimation_counter % 10 == 0:
+        if self.decimation_counter % 7 == 0:
             obs = self.compute_observation(
                 dof_pos,
                 dof_vel,
@@ -255,7 +255,7 @@ class MujocoControllerCfg:
 @configclass
 class T1LCCRetargetControllerCfg(ControllerCfg):
     robot = T1_23DOF_LCC_CFG
-    policy_dt = 0.002
+    policy_dt = 0.00285714285714
     booster = BoosterRobotControllerCfg()
     mujoco = MujocoControllerCfg()
     policy = LCCRetargetPolicyCfg(
