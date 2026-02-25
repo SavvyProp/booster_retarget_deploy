@@ -326,18 +326,5 @@ def step(base_linvel, base_angvel, grav_vac,
     nle_ff = h[6:]
     u_ff = u_ff + nle_ff
     u_ff = jnp.clip(u_ff, -ids["tau_limits"] * 1.0, ids["tau_limits"] * 1.0)
-    #u_ff = u_ff + nle_ff
-
-    #p_weight = p_weight * (1.0 - torque_fac * 0.5)
-    
-    #pd_tau = p_weight * GAIN_FAC * (des_pos - qpos) + d_weight * (0 - qvel)
-    #p_tau = p_weight * GAIN_FAC * (des_pos - qpos)
-    #d_tau = d_weight * (0 - qvel)
-    #exceed_limit_mask = jnp.where(qpos < ids["jnt_limits"][0, :] * 0.99, 1.0, 0.0) + jnp.where(qpos > ids["jnt_limits"][1, :] * 0.99, 1.0, 0.0)
-    #pd_tau = p_tau + d_tau
-    #pd_tau = pd_tau
-
-    #u_final = u * (pd_weight) + pd_tau * (1.0 - pd_weight)
-    #u = jnp.clip(u, -ids["tau_limits"], ids["tau_limits"])
 
     return u_ff, des_pos, des_pos, f, com_accs, des_com_vel, des_angvel, w
