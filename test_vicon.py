@@ -5,7 +5,7 @@ from booster_deploy.utils.vicon_vel import ViconVelocityEstimator
 import time
 vve = ViconVelocityEstimator()
 
-local_vel_arr = np.zeros([10000, 3])
+local_vel_arr = np.zeros([10000, 6])
 
 for c in range(10000):
     pos, local_vel, global_ori = vve.update()

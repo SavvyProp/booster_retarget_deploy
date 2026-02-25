@@ -3,6 +3,7 @@ import jax.numpy as jnp
 import jax
 import numpy as np
 from tasks.lcc_retarget.pin.local_lcc import step as lcc_step
+from booster_deploy.utils.consts import BOOSTER_CONSTS
 # This class (file) defines a class used to extract key model properties using Pinocchio
 
 class PinLCC:
@@ -12,20 +13,24 @@ class PinLCC:
             mesh_dir,
             root_joint=pin.JointModelFreeFlyer()
         )
-        with np.load(pin_npz_dir) as npz:
-            self.bids = {k: npz[k] for k in npz}  # or: for k in npz.keys()
-        self._ids = {}
-        for k, v in self.bids.items():
-            # Convert 0-d arrays / numpy scalars to Python scalars (static-friendly)
-            if isinstance(v, np.ndarray) and v.shape == ():
-                self._ids[k] = v.item()
-            # Also handle numpy scalar types directly
-            elif isinstance(v, np.generic):
-                self._ids[k] = v.item()
-            else:
-                # Keep real arrays as JAX arrays
-                self._ids[k] = jnp.asarray(v) if isinstance(v, np.ndarray) else v
-
+        
+        self._eef_names = [
+            "Left_Elbow_Yaw",
+            "Right_Elbow_Yaw",
+            "Left_Ankle_Roll",
+            "Right_Ankle_Roll",
+        ]
+        self._ids = {
+            "ctrl_num": len(BOOSTER_CONSTS.joint_names),
+            "eef_num": len(self._eef_names),
+            "tau_limits": jnp.asarray(BOOSTER_CONSTS.joint_torques),
+            "isaac_to_mj": jnp.asarray(BOOSTER_CONSTS.isaac_to_mj, dtype=jnp.int32),
+            "lg_action_scale": jnp.asarray(BOOSTER_CONSTS.lg_action_scale),
+            "default_joint_pos": jnp.asarray(BOOSTER_CONSTS.is_joint_pos),
+            "angular_inertia": jnp.asarray(BOOSTER_CONSTS.angular_inertia),
+            "mass": BOOSTER_CONSTS.mass,
+        }
+        
         self.data = self.model.createData()
 
         self.f = None
@@ -34,15 +39,6 @@ class PinLCC:
 
         self.qpin = np.zeros([self.model.nq])
         self.vpin = np.zeros([self.model.nv])
-
-        self.p_weight = self._ids["p_gains"]
-        self.d_weight = self._ids["d_gains"]
-        self.tau_limit = self._ids["tau_limits"]
-        #self.tau_limit = self.tau_limit.at[21].set(self.tau_limit[21] * 1.0)
-        #self.tau_limit = self.tau_limit.at[22].set(self.tau_limit[22] * 1.0)
-        #self.tau_limit = self.tau_limit.at[27].set(self.tau_limit[27] * 1.0)
-        #self.tau_limit = self.tau_limit.at[28].set(self.tau_limit[28] * 1.0)
-        #self.lcc_step = jax.jit(lcc_step)
 
         self.lcc_step = jax.jit(
             lambda base_linvel, base_angvel, grav_vac,
@@ -69,10 +65,8 @@ class PinLCC:
         #pin.updateFramePlacements(self.model, self.data)
         #pin.computeJointJacobians(self.model, self.data, self.qpin)
 
-        eefs = ["Left_Hand_Roll", "Right_Hand_Roll",
-                "Left_Ankle_Roll", "Right_Ankle_Roll"]
         self.eef_ids = []
-        for eef in eefs:
+        for eef in self._eef_names:
             eid = self.model.getJointId(eef)
             self.eef_ids.append(eid)
         return

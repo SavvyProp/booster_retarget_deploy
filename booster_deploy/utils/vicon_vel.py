@@ -67,7 +67,7 @@ class ViconVelocityEstimator:
             if abs(time_since - self.last_time) < 1e-5:
                 return self.base_pos, self.local_vel, self.global_ori  # Skip update if no new data
 
-            marker_offset_body = np.array([0.150, 0.0, 0.162]) # top-center of Booster
+            marker_offset_body = np.array([0.1394, 0.0, 0.2126]) # top-center of Booster
             R_meas_body = np.array([[1.0, 0.0, 0.0],
                                         [0.0, 0.0, 1.0],
                                         [0.0,-1.0, 0.0]])
@@ -99,7 +99,7 @@ class ViconVelocityEstimator:
             self.last_time = time_since
             alpha = 0.30
             raw_global_vel = (vicon_pos - self.vicon_pos) / dt
-            self.vicon_pos = vicon_pos
+            self.vicon_pos = vicon_pos - marker_offset_meas
             self.global_vel = self.global_vel * (1 - alpha) + raw_global_vel * alpha
 
             offset = R_world_body @ MARKER_OFFSET #Rotate marker offset into world frame

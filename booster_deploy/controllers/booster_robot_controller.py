@@ -5,6 +5,7 @@ import time
 import threading
 import multiprocessing as mp
 from multiprocessing import synchronize
+from typing import cast
 
 import numpy as np
 import torch
@@ -507,6 +508,20 @@ class BoosterRobotController(BaseController):
         #slice_size = 5 * self.robot.num_joints + 7 + 12 + 30 + 6 + 6 + 3 + 5 + 2 + self.policy.obs_size + 3
         self.obs_list = None#np.zeros((10000, slice_size), dtype=np.float32)
 
+    def _as_ros_float_vec(self, values, name: str) -> np.ndarray:
+        """Return a 1-D float64 NumPy view/copy suitable for ROS float setters.
+
+        ROS 2 Python generated message setters validate scalar fields as
+        ``isinstance(value, float)``. NumPy ``float64`` scalars satisfy that
+        check, while many device/scalar types (e.g. float32/JAX scalars) do not.
+        """
+        arr = np.asarray(values, dtype=np.float64).reshape(-1)
+        if arr.shape[0] != self.robot.num_joints:
+            raise ValueError(
+                f"{name} has {arr.shape[0]} elements, expected {self.robot.num_joints}."
+            )
+        return arr
+
     def update_vel_command(self):
         cmd = self.portal.synced_command.read()[0]
 
@@ -592,14 +607,15 @@ class BoosterRobotController(BaseController):
         return state
 
     def ctrl_step(self, dof_targets, u_ff) -> None:
-        dof_targets = list(map(float, dof_targets.tolist()))
-        u_ff = list(map(float, u_ff.tolist()))
+        dof_targets = self._as_ros_float_vec(dof_targets, "dof_targets")
+        u_ff = self._as_ros_float_vec(u_ff, "u_ff")
         st2 = time.perf_counter()
         for i in range(self.robot.num_joints):
             kp_val = self.robot.joint_stiffness[i]# * 0.0
             kd_val = self.robot.joint_damping[i]# * 0.0
-            fb_joint_pos = dof_targets[i]
-            ff_joint_torque = u_ff[i]
+            # Static cast only: no runtime conversion overhead.
+            fb_joint_pos = cast(float, dof_targets[i])
+            ff_joint_torque = cast(float, u_ff[i])
             #ff_joint_pos = ff_joint_torque / kp_val
             #new_q = self.robot.default_joint_pos_list[i]
             self.portal.motor_cmd[i].q = fb_joint_pos# + ff_joint_pos

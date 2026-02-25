@@ -2,55 +2,16 @@ from booster_deploy.controllers.base_controller import BaseController, Policy
 from booster_deploy.controllers.controller_cfg import (
     ControllerCfg, PolicyCfg, VelocityCommandCfg
 )
-from booster_deploy.robots.booster import T1_29DOF_CFG
+from booster_deploy.robots.booster import T1_23DOF_CFG
 from booster_deploy.utils.isaaclab.configclass import configclass
-from booster_deploy.utils.isaaclab import math as lab_math
 from booster_deploy.utils.onnx_runtime import create_inference_session
 import numpy as np
 import onnx
-import torch
+from booster_deploy.utils.consts import BOOSTER_CONSTS
 
 from dataclasses import MISSING
 
-action_scale_ = np.array(
-    [
-    0.12665148, 0.12665148, 0.22797266, 0.22797266, 0.22797266, 0.22797266,
-    0.22797266, 0.22797266, 0.22797266, 0.22797266, 0.22797266, 0.22797266,
-    0.22797266, 0.22797266, 0.22797266, 0.22797266, 0.18997722, 0.11398633,
-    0.18997722, 0.18997722, 0.15198178, 0.30396355, 0.18997722, 0.11398633,
-    0.18997722, 0.18997722, 0.15198178, 0.30396355, 0.18997722
-]
-).astype(np.float32)
-
-isaac_to_mj = [
-    0, 4, 1, 5, 9, 13, 17, 21, 25, 2, 6, 10, 14, 18, 22, 26, 3, 7, 11, 15, 19, 23, 27, 8, 12, 16, 20, 24, 28
-]
-mj_ankle = [21, 22, 27, 28]
-not_mj_ankle = [i for i in range(29) if i not in mj_ankle]
-reorder = mj_ankle + not_mj_ankle
-mj_to_isaac = [
-    0, 2, 9, 16, 1, 3, 10, 17, 23, 4, 11, 18, 24, 5, 12, 19, 25, 6, 13, 20, 26, 7, 14, 21, 27, 8, 15, 22, 28
-]
-
-mj_to_isaac_ankle = [
-    21, 27, 22, 28, 0, 2, 9, 16, 1, 3, 10, 17, 23, 4, 11, 18, 24, 5, 12, 19, 25, 6, 13, 20, 26, 7, 14, 8, 15
-]
-
-is_joint_pos = np.array(
-    [
-    0.0, 0.2, 0.2, 0.0, 0.0, -1.35, 1.35, -0.2, -0.2, 0.0,
-    0.0, 0.0, 0.0, -0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.42,
-    0.42, 0.0, 0.0, -0.23, -0.23, 0.0, 0.0, 0.0, 0.0,
-]
-).astype(np.float32)
-
-is_joint_pos_ankle = np.array(
-    [
-    -0.23, -0.23, 0.0, 0.0, 0.0, 0.2, 0.2, 0.0, 0.0, -1.35, 1.35, -0.2, -0.2, 0.0,
-    0.0, 0.0, 0.0, -0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.42,
-    0.42, 0.0, 0.0, 0.0, 0.0,
-]
-).astype(np.float32)
+CTRL_NUM = 23
 
 class PDRetargetPolicy(Policy):
     def __init__(self, cfg, controller: BaseController):
@@ -68,7 +29,7 @@ class PDRetargetPolicy(Policy):
         if self.cfg.prefer_gpu and "CUDAExecutionProvider" not in self.session.get_providers():
             print("CUDAExecutionProvider not available. Falling back to CPUExecutionProvider.")
         print(f"ONNX Runtime providers: {self.session.get_providers()}")
-        self.last_action = np.zeros((29), dtype=np.float32)
+        self.last_action = np.zeros((CTRL_NUM), dtype=np.float32)
         self.counter = 0
         self.delay = 0
         for inp in self.session.get_inputs():
@@ -79,12 +40,8 @@ class PDRetargetPolicy(Policy):
         if self.obs_size > 151:
             self.history_length = 4
 
-        self.vel_limit = np.ones((29,), dtype=np.float32) * 10.0
-        self.vel_limit[21] = 5.0
-        self.vel_limit[22] = 5.0
-        self.vel_limit[27] = 5.0
-        self.vel_limit[28] = 5.0
-
+        self.vel_limit = np.ones((CTRL_NUM,), dtype=np.float32) * 10.0
+        
         self.obs_hist = None
         
         dummy_obs = np.zeros((1, self.obs_size)).astype(np.float32)
@@ -123,15 +80,18 @@ class PDRetargetPolicy(Policy):
         dof_vel = np.clip(dof_vel, -self.vel_limit, self.vel_limit)
 
         if self.history_length > 1:
-            mapped_dof_pos = dof_pos[mj_to_isaac_ankle] - is_joint_pos_ankle
-            mapped_dof_vel = dof_vel[mj_to_isaac_ankle]
+            mapped_dof_pos = dof_pos[BOOSTER_CONSTS.mj_to_isaac_ankle] - BOOSTER_CONSTS.is_joint_pos_ankle.astype(np.float32)
+            mapped_dof_vel = dof_vel[BOOSTER_CONSTS.mj_to_isaac_ankle]
         else:
-            mapped_dof_pos = dof_pos[mj_to_isaac] - is_joint_pos
-            mapped_dof_vel = dof_vel[mj_to_isaac]
+            mapped_dof_pos = dof_pos[BOOSTER_CONSTS.mj_to_isaac] - BOOSTER_CONSTS.is_joint_pos.astype(np.float32)
+            mapped_dof_vel = dof_vel[BOOSTER_CONSTS.mj_to_isaac]
 
         if self.counter < self.delay:
-            self.prev_joint_pos = is_joint_pos.reshape(1, -1)
-            self.prev_joint_vel = np.zeros((1, 29), dtype=np.float32)
+            if self.history_length > 1:
+                self.prev_joint_pos = BOOSTER_CONSTS.is_joint_pos_ankle.reshape(1, -1)
+            else:
+                self.prev_joint_pos = BOOSTER_CONSTS.is_joint_pos.reshape(1, -1)
+            self.prev_joint_vel = np.zeros((1, CTRL_NUM), dtype=np.float32)
             
         cmd = np.concatenate([
             self.prev_joint_pos,
@@ -166,16 +126,16 @@ class PDRetargetPolicy(Policy):
         time = time.reshape(1, -1)
         obs = obs.reshape(1, -1).astype(np.float32)
         if self.history_length > 1:
-            cmd = self.obs_hist[:, :29 * 2].reshape(1, -1)
-            base_lin_vel = self.obs_hist[:, 29 * 2: 29 * 2 + 3].reshape(1, -1)
-            base_ang_vel = self.obs_hist[:, 29 * 2 + 3: 29 * 2 + 6].reshape(1, -1)
-            dof_pos = self.obs_hist[:, 29 * 2 + 6: 29 * 3 + 6]
+            cmd = self.obs_hist[:, :CTRL_NUM * 2].reshape(1, -1)
+            base_lin_vel = self.obs_hist[:, CTRL_NUM * 2: CTRL_NUM * 2 + 3].reshape(1, -1)
+            base_ang_vel = self.obs_hist[:, CTRL_NUM * 2 + 3: CTRL_NUM * 2 + 6].reshape(1, -1)
+            dof_pos = self.obs_hist[:, CTRL_NUM * 2 + 6: CTRL_NUM * 3 + 6]
             dof_pos_high = dof_pos[:, :4].reshape(1, -1)
             dof_pos_low = dof_pos[:, 4:].reshape(1, -1)
-            dof_vel = self.obs_hist[:, 29 * 3 + 6: 29 * 4 + 6]
+            dof_vel = self.obs_hist[:, CTRL_NUM * 3 + 6: CTRL_NUM * 4 + 6]
             dof_vel_high = dof_vel[:, :4].reshape(1, -1)
             dof_vel_low = dof_vel[:, 4:].reshape(1, -1)
-            last_action = self.obs_hist[:, 29 * 4 + 6:].reshape(1, -1)
+            last_action = self.obs_hist[:, CTRL_NUM * 4 + 6:].reshape(1, -1)
             obs = np.concatenate([cmd, base_lin_vel, base_ang_vel, dof_pos_high,
                                   dof_pos_low, dof_vel_high, dof_vel_low, last_action], axis=-1)
         
@@ -195,10 +155,10 @@ class PDRetargetPolicy(Policy):
         self.prev_body_angvel = output[6]
         action = output[0]
         self.last_action = action
-        joint_pos_target = action[:, isaac_to_mj] * action_scale_
+        joint_pos_target = action[:, BOOSTER_CONSTS.isaac_to_mj] * BOOSTER_CONSTS.action_scale
         #offset = np.array(self.robot.default_joint_pos)
         #joint_pos_target = joint_pos_target.reshape(-1) + offset.reshape(-1)
-        joint_pos_target = joint_pos_target.reshape(-1) + is_joint_pos[isaac_to_mj].reshape(-1)
+        joint_pos_target = joint_pos_target.reshape(-1) + BOOSTER_CONSTS.is_joint_pos[BOOSTER_CONSTS.isaac_to_mj].reshape(-1)
         joint_pos_target[0] = 0.0
         joint_pos_target[1] = 0.0
         u_ff = np.zeros_like(joint_pos_target)
@@ -216,7 +176,7 @@ class PDRetargetPolicyCfg(PolicyCfg):
 
 @configclass
 class T1RetargetControllerCfg(ControllerCfg):
-    robot = T1_29DOF_CFG
+    robot = T1_23DOF_CFG
     policy = PDRetargetPolicyCfg(
         checkpoint_path="models/HDM_W/policy.onnx",
         policy_joint_names = [       # joint order in isaacsim/isaaclab
