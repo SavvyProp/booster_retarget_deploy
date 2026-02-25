@@ -256,15 +256,15 @@ T1_23DOF_LCC_CFG = RobotCfg(
         19.7392 * GAIN_FAC,  # Right_Shoulder_Roll
         19.7392 * GAIN_FAC,  # Right_Elbow_Pitch
         19.7392 * GAIN_FAC,  # Right_Elbow_Yaw
-        39.4784 * GAIN_FAC * 1.1,  # Waist
+        39.4784 * GAIN_FAC * 1.05,  # Waist
         98.6960 * GAIN_FAC,  # Left_Hip_Pitch
-        39.4784 * GAIN_FAC,  # Left_Hip_Roll
+        39.4784 * GAIN_FAC * 1.1,  # Left_Hip_Roll
         39.4784 * GAIN_FAC,  # Left_Hip_Yaw
         98.6960 * GAIN_FAC,  # Left_Knee_Pitch
         19.7392 * GAIN_FAC,  # Left_Ankle_Pitch
         19.7392 * GAIN_FAC,  # Left_Ankle_Roll
         98.6960 * GAIN_FAC,  # Right_Hip_Pitch
-        39.4784 * GAIN_FAC,  # Right_Hip_Roll
+        39.4784 * GAIN_FAC * 1.1,  # Right_Hip_Roll
         39.4784 * GAIN_FAC,  # Right_Hip_Yaw
         98.6960 * GAIN_FAC,  # Right_Knee_Pitch
         19.7392 * GAIN_FAC,  # Right_Ankle_Pitch
