@@ -195,10 +195,10 @@ def ft_ref(eefpos, com_pos,
     # Make Costs
 
     tau_limits = ids["tau_limits"]
-    tau_limits = tau_limits.at[-1].set(7.5/2) # Right ankle roll
-    tau_limits = tau_limits.at[-2].set(10/2) # Right ankle pitch
-    tau_limits = tau_limits.at[-7].set(7.5/2) # Left ankle roll
-    tau_limits = tau_limits.at[-8].set(10/2) # Left ankle pitch
+    tau_limits = tau_limits.at[-1].set(7.5/1.5) # Right ankle roll
+    tau_limits = tau_limits.at[-2].set(10/1.5) # Right ankle pitch
+    tau_limits = tau_limits.at[-7].set(7.5/1.5) # Left ankle roll
+    tau_limits = tau_limits.at[-8].set(10/1.5) # Left ankle pitch
 
     w_diag = jnp.square(1.0 / tau_limits)
 
