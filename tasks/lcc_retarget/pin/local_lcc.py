@@ -110,7 +110,7 @@ def f_mag_q(w, ids):
     # Clip and exponentiate
     logits = -jnp.clip(w, -10.0, 10.0)          # (E,)
     scale_lin = jnp.exp(logits)               # (E,)
-    scale_ang = scale_lin * 20.0              # (E,)
+    scale_ang = scale_lin * 40.0              # (E,)
 
     # Build per-effector 6-tuple: [lin, lin, lin, ang, ang, ang]
     lin3 = jnp.repeat(scale_lin[:, None], 3, axis=1)  # (E,3)
@@ -289,7 +289,7 @@ def highlvlPD(com_vel, com_angvel,
     #com_acc_mag = jnp.linalg.norm(com_acc)
     #com_acc_mag_ = jnp.clip(com_acc_mag, 0.0, 8.0)
     #com_acc = com_acc * (com_acc_mag_ / (1e-6 + com_acc_mag))
-    c_ang_p_gain = 15
+    c_ang_p_gain = 15 * 0.5
     com_angacc = c_ang_p_gain * (des_angvel - com_angvel)
     com_accs = jnp.concatenate([com_acc, com_angacc], axis = 0)
     return com_accs
