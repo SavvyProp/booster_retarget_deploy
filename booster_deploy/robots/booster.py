@@ -1,5 +1,24 @@
 from ..controllers.controller_cfg import PrepareStateCfg, RobotCfg
 
+NATURAL_FREQ = 10 * 2.0 * 3.1415926535  # 10Hz
+DAMPING_RATIO = 2.0
+
+ARMATURE_ANK = 0.01
+ARMATURE_HIGH = 0.03
+ARMATURE_MID = 0.02
+ARMATURE_LOW = 0.01
+
+STIFFNESS_LOW = ARMATURE_LOW * NATURAL_FREQ**2
+STIFFNESS_ANK = ARMATURE_ANK * NATURAL_FREQ**2
+STIFFNESS_MID = ARMATURE_MID * NATURAL_FREQ**2
+STIFFNESS_HIGH = ARMATURE_HIGH * NATURAL_FREQ**2
+
+DAMPING_LOW = 2.0 * DAMPING_RATIO * ARMATURE_LOW * NATURAL_FREQ
+DAMPING_ANK = 2.0 * DAMPING_RATIO * ARMATURE_ANK * NATURAL_FREQ
+DAMPING_MID = 2.0 * DAMPING_RATIO * ARMATURE_MID * NATURAL_FREQ
+DAMPING_HIGH = 2.0 * DAMPING_RATIO * ARMATURE_HIGH * NATURAL_FREQ
+
+
 T1_23DOF_CFG = RobotCfg(
     name="Booster_T1_23DOF",
     joint_names=
@@ -55,54 +74,54 @@ T1_23DOF_CFG = RobotCfg(
         "right_foot_link",
     ],
     joint_stiffness=[
-        19.7392,  # AAHead_yaw
-        19.7392,  # Head_pitch
-        19.7392,  # Left_Shoulder_Pitch
-        19.7392,  # Left_Shoulder_Roll
-        19.7392,  # Left_Elbow_Pitch
-        19.7392,  # Left_Elbow_Yaw
-        19.7392,  # Right_Shoulder_Pitch
-        19.7392,  # Right_Shoulder_Roll
-        19.7392,  # Right_Elbow_Pitch
-        19.7392,  # Right_Elbow_Yaw
-        39.4784,  # Waist
-        98.6960,  # Left_Hip_Pitch
-        39.4784,  # Left_Hip_Roll
-        39.4784,  # Left_Hip_Yaw
-        98.6960,  # Left_Knee_Pitch
-        19.7392,  # Left_Ankle_Pitch
-        19.7392,  # Left_Ankle_Roll
-        98.6960,  # Right_Hip_Pitch
-        39.4784,  # Right_Hip_Roll
-        39.4784,  # Right_Hip_Yaw
-        98.6960,  # Right_Knee_Pitch
-        19.7392,  # Right_Ankle_Pitch
-        19.7392,  # Right_Ankle_Roll
+        STIFFNESS_LOW,  # AAHead_yaw
+        STIFFNESS_LOW,  # Head_pitch
+        STIFFNESS_LOW,  # Left_Shoulder_Pitch
+        STIFFNESS_LOW,  # Left_Shoulder_Roll
+        STIFFNESS_LOW,  # Left_Elbow_Pitch
+        STIFFNESS_LOW,  # Left_Elbow_Yaw
+        STIFFNESS_LOW,  # Right_Shoulder_Pitch
+        STIFFNESS_LOW,  # Right_Shoulder_Roll
+        STIFFNESS_LOW,  # Right_Elbow_Pitch
+        STIFFNESS_LOW,  # Right_Elbow_Yaw
+        STIFFNESS_MID,  # Waist
+        STIFFNESS_HIGH,  # Left_Hip_Pitch
+        STIFFNESS_MID,  # Left_Hip_Roll
+        STIFFNESS_MID,  # Left_Hip_Yaw
+        STIFFNESS_HIGH,  # Left_Knee_Pitch
+        STIFFNESS_ANK,  # Left_Ankle_Pitch
+        STIFFNESS_ANK,  # Left_Ankle_Roll
+        STIFFNESS_HIGH,  # Right_Hip_Pitch
+        STIFFNESS_MID,  # Right_Hip_Roll
+        STIFFNESS_MID,  # Right_Hip_Yaw
+        STIFFNESS_HIGH,  # Right_Knee_Pitch
+        STIFFNESS_ANK,  # Right_Ankle_Pitch
+        STIFFNESS_ANK,  # Right_Ankle_Roll
     ],
     joint_damping=[
-        1.2566,  # AAHead_yaw
-        1.2566,  # Head_pitch
-        1.2566,  # Left_Shoulder_Pitch
-        1.2566,  # Left_Shoulder_Roll
-        1.2566,  # Left_Elbow_Pitch
-        1.2566,  # Left_Elbow_Yaw
-        1.2566,  # Right_Shoulder_Pitch
-        1.2566,  # Right_Shoulder_Roll
-        1.2566,  # Right_Elbow_Pitch
-        1.2566,  # Right_Elbow_Yaw
-        2.5133,  # Waist
-        6.2832,  # Left_Hip_Pitch
-        2.5133,  # Left_Hip_Roll
-        2.5133,  # Left_Hip_Yaw
-        6.2832,  # Left_Knee_Pitch
-        3.0,  # Left_Ankle_Pitch
-        3.0,  # Left_Ankle_Roll
-        6.2832,  # Right_Hip_Pitch
-        2.5133,  # Right_Hip_Roll
-        2.5133,  # Right_Hip_Yaw
-        6.2832,  # Right_Knee_Pitch
-        3.0,  # Right_Ankle_Pitch
-        3.0,  # Right_Ankle_Roll
+        DAMPING_LOW,  # AAHead_yaw
+        DAMPING_LOW,  # Head_pitch
+        DAMPING_LOW,  # Left_Shoulder_Pitch
+        DAMPING_LOW,  # Left_Shoulder_Roll
+        DAMPING_LOW,  # Left_Elbow_Pitch
+        DAMPING_LOW,  # Left_Elbow_Yaw
+        DAMPING_LOW,  # Right_Shoulder_Pitch
+        DAMPING_LOW,  # Right_Shoulder_Roll
+        DAMPING_LOW,  # Right_Elbow_Pitch
+        DAMPING_LOW,  # Right_Elbow_Yaw
+        DAMPING_MID,  # Waist
+        DAMPING_HIGH,  # Left_Hip_Pitch
+        DAMPING_MID,  # Left_Hip_Roll
+        DAMPING_MID,  # Left_Hip_Yaw
+        DAMPING_HIGH,  # Left_Knee_Pitch
+        DAMPING_ANK,  # Left_Ankle_Pitch
+        DAMPING_ANK,  # Left_Ankle_Roll
+        DAMPING_HIGH,  # Right_Hip_Pitch
+        DAMPING_MID,  # Right_Hip_Roll
+        DAMPING_MID,  # Right_Hip_Yaw
+        DAMPING_HIGH,  # Right_Knee_Pitch
+        DAMPING_ANK,  # Right_Ankle_Pitch
+        DAMPING_ANK,  # Right_Ankle_Roll
     ],
     effort_limit=[
         7,   # AAHead_yaw
@@ -188,7 +207,7 @@ T1_23DOF_CFG = RobotCfg(
     ),
 )
 
-GAIN_FAC = 1.0
+GAIN_FAC = 0.75
 DAMP_FAC = 1.0
 
 T1_23DOF_LCC_CFG = RobotCfg(
@@ -246,54 +265,54 @@ T1_23DOF_LCC_CFG = RobotCfg(
         "right_foot_link",
     ],
     joint_stiffness=[
-        19.7392 * GAIN_FAC,  # AAHead_yaw
-        19.7392 * GAIN_FAC,  # Head_pitch
-        19.7392 * GAIN_FAC,  # Left_Shoulder_Pitch
-        19.7392 * GAIN_FAC,  # Left_Shoulder_Roll
-        19.7392 * GAIN_FAC,  # Left_Elbow_Pitch
-        19.7392 * GAIN_FAC,  # Left_Elbow_Yaw
-        19.7392 * GAIN_FAC,  # Right_Shoulder_Pitch
-        19.7392 * GAIN_FAC,  # Right_Shoulder_Roll
-        19.7392 * GAIN_FAC,  # Right_Elbow_Pitch
-        19.7392 * GAIN_FAC,  # Right_Elbow_Yaw
-        39.4784 * GAIN_FAC,  # Waist
-        98.6960 * GAIN_FAC,  # Left_Hip_Pitch
-        39.4784 * GAIN_FAC,  # Left_Hip_Roll
-        39.4784 * GAIN_FAC,  # Left_Hip_Yaw
-        98.6960 * GAIN_FAC,  # Left_Knee_Pitch
-        19.7392 * GAIN_FAC,  # Left_Ankle_Pitch
-        19.7392 * GAIN_FAC,  # Left_Ankle_Roll
-        98.6960 * GAIN_FAC,  # Right_Hip_Pitch
-        39.4784 * GAIN_FAC,  # Right_Hip_Roll
-        39.4784 * GAIN_FAC,  # Right_Hip_Yaw
-        98.6960 * GAIN_FAC,  # Right_Knee_Pitch
-        19.7392 * GAIN_FAC,  # Right_Ankle_Pitch
-        19.7392 * GAIN_FAC,  # Right_Ankle_Roll
+        STIFFNESS_LOW * GAIN_FAC,  # AAHead_yaw
+        STIFFNESS_LOW * GAIN_FAC,  # Head_pitch
+        STIFFNESS_LOW * GAIN_FAC,  # Left_Shoulder_Pitch
+        STIFFNESS_LOW * GAIN_FAC,  # Left_Shoulder_Roll
+        STIFFNESS_LOW * GAIN_FAC,  # Left_Elbow_Pitch
+        STIFFNESS_LOW * GAIN_FAC,  # Left_Elbow_Yaw
+        STIFFNESS_LOW * GAIN_FAC,  # Right_Shoulder_Pitch
+        STIFFNESS_LOW * GAIN_FAC,  # Right_Shoulder_Roll
+        STIFFNESS_LOW * GAIN_FAC,  # Right_Elbow_Pitch
+        STIFFNESS_LOW * GAIN_FAC,  # Right_Elbow_Yaw
+        STIFFNESS_MID * GAIN_FAC,  # Waist
+        STIFFNESS_HIGH * GAIN_FAC,  # Left_Hip_Pitch
+        STIFFNESS_MID * GAIN_FAC,  # Left_Hip_Roll
+        STIFFNESS_MID * GAIN_FAC,  # Left_Hip_Yaw
+        STIFFNESS_HIGH * GAIN_FAC,  # Left_Knee_Pitch
+        STIFFNESS_ANK * GAIN_FAC,  # Left_Ankle_Pitch
+        STIFFNESS_ANK * GAIN_FAC,  # Left_Ankle_Roll
+        STIFFNESS_HIGH * GAIN_FAC,  # Right_Hip_Pitch
+        STIFFNESS_MID * GAIN_FAC,  # Right_Hip_Roll
+        STIFFNESS_MID * GAIN_FAC,  # Right_Hip_Yaw
+        STIFFNESS_HIGH * GAIN_FAC,  # Right_Knee_Pitch
+        STIFFNESS_ANK * GAIN_FAC,  # Right_Ankle_Pitch
+        STIFFNESS_ANK * GAIN_FAC,  # Right_Ankle_Roll
     ],
     joint_damping=[
-        1.2566 * DAMP_FAC,  # AAHead_yaw
-        1.2566 * DAMP_FAC,  # Head_pitch
-        1.2566 * DAMP_FAC,  # Left_Shoulder_Pitch
-        1.2566 * DAMP_FAC,  # Left_Shoulder_Roll
-        1.2566 * DAMP_FAC,  # Left_Elbow_Pitch
-        1.2566 * DAMP_FAC,  # Left_Elbow_Yaw
-        1.2566 * DAMP_FAC,  # Right_Shoulder_Pitch
-        1.2566 * DAMP_FAC,  # Right_Shoulder_Roll
-        1.2566 * DAMP_FAC,  # Right_Elbow_Pitch
-        1.2566 * DAMP_FAC,  # Right_Elbow_Yaw
-        2.5133 * DAMP_FAC,  # Waist
-        6.2832 * DAMP_FAC * 0.85,  # Left_Hip_Pitch
-        2.5133 * DAMP_FAC * 0.85,  # Left_Hip_Roll
-        2.5133 * DAMP_FAC * 0.85,  # Left_Hip_Yaw
-        6.2832 * DAMP_FAC,  # Left_Knee_Pitch
-        6.0,  # Left_Ankle_Pitch
-        6.0,  # Left_Ankle_Roll
-        6.2832 * DAMP_FAC * 0.85,  # Right_Hip_Pitch
-        2.5133 * DAMP_FAC * 0.85,  # Right_Hip_Roll
-        2.5133 * DAMP_FAC * 0.85,  # Right_Hip_Yaw
-        6.2832 * DAMP_FAC,  # Right_Knee_Pitch
-        6.0,# Right_Ankle_Pitch
-        6.0,  # Right_Ankle_Roll
+        DAMPING_LOW * DAMP_FAC,  # AAHead_yaw
+        DAMPING_LOW * DAMP_FAC,  # Head_pitch
+        DAMPING_LOW * DAMP_FAC,  # Left_Shoulder_Pitch
+        DAMPING_LOW * DAMP_FAC,  # Left_Shoulder_Roll
+        DAMPING_LOW * DAMP_FAC,  # Left_Elbow_Pitch
+        DAMPING_LOW * DAMP_FAC,  # Left_Elbow_Yaw
+        DAMPING_LOW * DAMP_FAC,  # Right_Shoulder_Pitch
+        DAMPING_LOW * DAMP_FAC,  # Right_Shoulder_Roll
+        DAMPING_LOW * DAMP_FAC,  # Right_Elbow_Pitch
+        DAMPING_LOW * DAMP_FAC,  # Right_Elbow_Yaw
+        DAMPING_MID * DAMP_FAC,  # Waist
+        DAMPING_HIGH * DAMP_FAC,  # Left_Hip_Pitch
+        DAMPING_MID * DAMP_FAC,  # Left_Hip_Roll
+        DAMPING_MID * DAMP_FAC,  # Left_Hip_Yaw
+        DAMPING_HIGH * DAMP_FAC,  # Left_Knee_Pitch
+        DAMPING_ANK,  # Left_Ankle_Pitch
+        DAMPING_ANK,  # Left_Ankle_Roll
+        DAMPING_HIGH * DAMP_FAC,  # Right_Hip_Pitch
+        DAMPING_MID * DAMP_FAC,  # Right_Hip_Roll
+        DAMPING_MID * DAMP_FAC,  # Right_Hip_Yaw
+        DAMPING_HIGH * DAMP_FAC,  # Right_Knee_Pitch
+        DAMPING_ANK,  # Right_Ankle_Pitch
+        DAMPING_ANK,  # Right_Ankle_Roll
     ],
     effort_limit=[
         7,   # AAHead_yaw

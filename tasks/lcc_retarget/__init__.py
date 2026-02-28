@@ -24,6 +24,12 @@ class T1LCC_hk(T1LCCRetargetControllerCfg):
         super().__post_init__()
         self.policy.checkpoint_path = "tasks/lcc_retarget/models/t1_23_hk_trans/policy.onnx"
 
+@configclass
+class T1LCC_balance(T1LCCRetargetControllerCfg):
+    def __post_init__(self):
+        super().__post_init__()
+        self.policy.checkpoint_path = "tasks/lcc_retarget/models/t1_23_balance_trans/policy.onnx"
+
 
 register_task(
     "t1_lcc_retarget_kick", T1LCC_kick()
@@ -35,4 +41,8 @@ register_task(
 
 register_task(
     "t1_lcc_retarget_hk", T1LCC_hk()
+)
+
+register_task(
+    "t1_lcc_retarget_balance", T1LCC_balance()
 )

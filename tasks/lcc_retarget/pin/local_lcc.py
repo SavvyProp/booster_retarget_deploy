@@ -1,8 +1,6 @@
 import jax.numpy as jnp
 import jax
 
-GAIN_FAC = 0.75
-
 # Collection of LCC functions to run the controller in local space
 
 def schur_solve(qp_q, qp_c, cons_lhs, cons_rhs, reg: float = 1e-6):

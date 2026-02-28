@@ -25,6 +25,8 @@ def quat_to_rotmat_wxyz(q):
 
 CTRL_NUM = 23
 
+FREQ = 350.0
+
 class LCCRetargetPolicy(Policy):
     def __init__(self, cfg, controller: BaseController):
         super().__init__(cfg, controller)
@@ -195,8 +197,8 @@ class LCCRetargetPolicy(Policy):
         base_ang_vel = self.robot.data.root_ang_vel_b
         base_lin_vel = self.robot.data.root_lin_vel_b
         #self.joint_vel = self.joint_vel * (1 - self.alpha) + dof_vel * self.alpha
-
-        if self.decimation_counter % 7 == 0:
+        iters = int(0.02 * FREQ)
+        if self.decimation_counter % iters == 0:
             obs = self.compute_observation(
                 dof_pos,
                 dof_vel,
@@ -255,7 +257,7 @@ class MujocoControllerCfg:
 @configclass
 class T1LCCRetargetControllerCfg(ControllerCfg):
     robot = T1_23DOF_LCC_CFG
-    policy_dt = 0.00285714285714
+    policy_dt = 1/FREQ
     booster = BoosterRobotControllerCfg()
     mujoco = MujocoControllerCfg()
     policy = LCCRetargetPolicyCfg(

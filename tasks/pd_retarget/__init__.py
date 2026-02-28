@@ -23,6 +23,12 @@ class T1PD_hk(T1RetargetControllerCfg):
         super().__post_init__()
         self.policy.checkpoint_path = "tasks/pd_retarget/models/t1_23_hk_trans/policy.onnx"
 
+@configclass
+class T1PD_balance(T1RetargetControllerCfg):
+    def __post_init__(self):
+        super().__post_init__()
+        self.policy.checkpoint_path = "tasks/pd_retarget/models/t1_23_balance_trans/policy.onnx"
+
 
 register_task(
     "t1_retarget_kick", T1PD_kick()
@@ -34,4 +40,8 @@ register_task(
 
 register_task(
     "t1_retarget_hk", T1PD_hk()
+)
+
+register_task(
+    "t1_retarget_balance", T1PD_balance()
 )
