@@ -97,7 +97,7 @@ class ViconVelocityEstimator:
 
             dt = time_since - self.last_time
             self.last_time = time_since
-            alpha = 0.30
+            alpha = 0.50
             vicon_pos = vicon_pos - marker_offset_meas
             raw_global_vel = (vicon_pos - self.vicon_pos) / dt
             self.vicon_pos = vicon_pos
