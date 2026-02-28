@@ -110,7 +110,7 @@ def f_mag_q(w, ids):
     # Clip and exponentiate
     logits = -jnp.clip(w, -10.0, 10.0)          # (E,)
     scale_lin = jnp.exp(logits)               # (E,)
-    scale_ang = scale_lin * 20.0              # (E,)
+    scale_ang = scale_lin * 30.0              # (E,)
 
     # Build per-effector 6-tuple: [lin, lin, lin, ang, ang, ang]
     lin3 = jnp.repeat(scale_lin[:, None], 3, axis=1)  # (E,3)
@@ -195,10 +195,10 @@ def ft_ref(eefpos, com_pos,
     # Make Costs
 
     tau_limits = ids["tau_limits"]
-    tau_limits = tau_limits.at[-1].set(7.5) # Right ankle roll
-    tau_limits = tau_limits.at[-2].set(10) # Right ankle pitch
-    tau_limits = tau_limits.at[-7].set(7.5) # Left ankle roll
-    tau_limits = tau_limits.at[-8].set(10) # Left ankle pitch
+    tau_limits = tau_limits.at[-1].set(7.5/1.5) # Right ankle roll
+    tau_limits = tau_limits.at[-2].set(10/1.5) # Right ankle pitch
+    tau_limits = tau_limits.at[-7].set(7.5/1.5) # Left ankle roll
+    tau_limits = tau_limits.at[-8].set(10/1.5) # Left ankle pitch
 
     w_diag = jnp.square(1.0 / tau_limits)
 
