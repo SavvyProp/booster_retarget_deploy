@@ -25,7 +25,7 @@ def quat_to_rotmat_wxyz(q):
 
 CTRL_NUM = 23
 
-FREQ = 350.0
+FREQ = 400.0
 ITERS = round(0.02 * FREQ)
 
 class LCCRetargetPolicy(Policy):
