@@ -26,6 +26,7 @@ def quat_to_rotmat_wxyz(q):
 CTRL_NUM = 23
 
 FREQ = 300.0
+ITERS = round(0.02 * FREQ)
 
 class LCCRetargetPolicy(Policy):
     def __init__(self, cfg, controller: BaseController):
@@ -197,8 +198,8 @@ class LCCRetargetPolicy(Policy):
         base_ang_vel = self.robot.data.root_ang_vel_b
         base_lin_vel = self.robot.data.root_lin_vel_b
         #self.joint_vel = self.joint_vel * (1 - self.alpha) + dof_vel * self.alpha
-        iters = round(0.02 * FREQ)
-        if self.decimation_counter % iters == 0:
+        
+        if self.decimation_counter % ITERS == 0:
             obs = self.compute_observation(
                 dof_pos,
                 dof_vel,
