@@ -9,7 +9,7 @@ def generate_launch_description():
 
     # --- 1) Vicon bridge node ----------------------------------
     vicon_params = {
-        'host_name': '192.168.50.19',
+        'host_name': '192.168.50.20',
         'stream_mode': 'ClientPull',
         'update_rate_hz': 300.0, # More than 2x VICON publish rate
         'world_frame_id': 'world',
